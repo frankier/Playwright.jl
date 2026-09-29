@@ -9,6 +9,9 @@ scraping, and screenshot/PDF generation without leaving Julia or hand-rolling
 CDP. The same architecture as `playwright-python`: a pinned Playwright driver
 (Node.js) runs as a subprocess and Julia speaks its JSON protocol over stdio.
 
+🤖 Yes, this is going to be mostly a robot code and text zone
+🤖 [AI level: 7/8](https://www.visidata.org/blog/2026/ai/#level-7%3A-human-specced%2C-bots-coded) 
+
 **📖 [Documentation](https://frankier.github.io/playwright-julia/dev/)** — the
 guide, the examples and the full API reference live there.
 
