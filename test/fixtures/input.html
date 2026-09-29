@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Input fixture</title>
+    <style>
+      #scroller { width: 200px; height: 100px; overflow: auto; border: 1px solid #888; }
+      #scroller .filler { height: 600px; }
+      #spacer { height: 1200px; }
+      #pad { border: 1px solid #000; touch-action: none; }
+      #drop-target { width: 120px; height: 60px; border: 2px dashed #888; }
+    </style>
+  </head>
+  <body>
+    <h1>Input</h1>
+
+    <!-- Canvas painting: the mouse triple, with the intermediate moves the
+         app's mousemove handler reads. The count is exposed on window so the
+         test can tell "the browser received a drag" from "the page never
+         saw one". -->
+    <canvas id="pad" width="300" height="200"></canvas>
+
+    <script>
+      const pad = document.getElementById("pad");
+      const ctx = pad.getContext("2d");
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, pad.width, pad.height);
+
+      window.paint = { strokes: 0, moves: 0, down: false, last: null };
+      const padPoint = (event) => {
+        const r = pad.getBoundingClientRect();
+        return { x: event.clientX - r.left, y: event.clientY - r.top };
+      };
+      pad.addEventListener("mousedown", (event) => {
+        window.paint.down = true;
+        window.paint.last = padPoint(event);
+        event.preventDefault();
+      });
+      window.addEventListener("mouseup", () => {
+        window.paint.down = false;
+        window.paint.last = null;
+      });
+      pad.addEventListener("mousemove", (event) => {
+        window.paint.moves++;
+        if (!window.paint.down) return;
+        const p = padPoint(event);
+        ctx.beginPath();
+        ctx.moveTo(window.paint.last.x, window.paint.last.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        window.paint.last = p;
+        window.paint.strokes++;
+      });
+    </script>
+
+    <!-- Hover. -->
+    <div id="hover-target">hover me</div>
+    <p id="hover-status">idle</p>
+    <script>
+      const hoverTarget = document.getElementById("hover-target");
+      hoverTarget.addEventListener("mouseenter", () => {
+        document.getElementById("hover-status").textContent = "hovered";
+      });
+    </script>
+
+    <!-- Double click. -->
+    <button id="dbl">double</button>
+    <p id="dbl-status">0</p>
+    <script>
+      document.getElementById("dbl").addEventListener("dblclick", () => {
+        document.getElementById("dbl-status").textContent = "1";
+      });
+    </script>
+
+    <!-- Focus and blur. -->
+    <input id="focusfield" type="text" />
+    <p id="focus-status">blurred</p>
+    <script>
+      const focusField = document.getElementById("focusfield");
+      const focusStatus = document.getElementById("focus-status");
+      focusField.addEventListener("focus", () => { focusStatus.textContent = "focused"; });
+      focusField.addEventListener("blur", () => { focusStatus.textContent = "blurred"; });
+    </script>
+
+    <!-- Key events, for press!/type! and the page-level keyboard. -->
+    <input id="keyfield" type="text" />
+    <p id="key-log"></p>
+    <script>
+      const keyField = document.getElementById("keyfield");
+      const keyLog = document.getElementById("key-log");
+      window.keyed = [];
+      keyField.addEventListener("keydown", (event) => {
+        window.keyed.push(event.key);
+        keyLog.textContent = window.keyed.join(",");
+      });
+    </script>
+
+    <!-- Check and uncheck. -->
+    <input id="box" type="checkbox" />
+    <script>
+      window.boxChanged = 0;
+      document.getElementById("box").addEventListener("change", () => { window.boxChanged++; });
+    </script>
+
+    <!-- select_option!. -->
+    <select id="size">
+      <option value="s">Small</option>
+      <option value="m">Medium</option>
+      <option value="l">Large</option>
+    </select>
+    <select id="pick" multiple>
+      <option value="a">A</option>
+      <option value="b">B</option>
+      <option value="c">C</option>
+    </select>
+    <p id="size-status"></p>
+    <script>
+      document.getElementById("size").addEventListener("change", (event) => {
+        document.getElementById("size-status").textContent = event.target.value;
+      });
+    </script>
+
+    <!-- HTML5 drag and drop, for drag!. -->
+    <div id="drag-source" draggable="true">drag me</div>
+    <div id="drop-target">drop here</div>
+    <p id="drop-status">none</p>
+    <script>
+      document.getElementById("drag-source").addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("text/plain", "source");
+      });
+      const dropTarget = document.getElementById("drop-target");
+      dropTarget.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      });
+      dropTarget.addEventListener("drop", (event) => {
+        event.preventDefault();
+        document.getElementById("drop-status").textContent =
+          event.dataTransfer.getData("text/plain");
+      });
+    </script>
+
+    <!-- Wheel scrolling, in a container small enough to have somewhere to go. -->
+    <div id="scroller">
+      <div class="filler">scroll me</div>
+    </div>
+
+    <!-- A click at explicit page coordinates. -->
+    <button id="coord">coordinate click</button>
+    <p id="coord-status">none</p>
+    <script>
+      document.getElementById("coord").addEventListener("click", (event) => {
+        document.getElementById("coord-status").textContent =
+          `${event.button}:${event.detail}`;
+      });
+    </script>
+
+    <!-- Touch tap, in a context created with has_touch. -->
+    <button id="tap">touch</button>
+    <p id="tap-status">none</p>
+    <script>
+      document.getElementById("tap").addEventListener("click", () => {
+        document.getElementById("tap-status").textContent = "tapped";
+      });
+    </script>
+
+    <!-- Far below the fold, for scroll_into_view_if_needed!. -->
+    <div id="spacer"></div>
+    <div id="far">the far element</div>
+  </body>
+</html>

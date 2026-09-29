@@ -97,6 +97,8 @@ what else differs between the five, and why.
 What the package covers:
 
 - Locators, JavaScript evaluation and the frame tree.
+- The mouse and the keyboard: hover, drag, wheel and typing, both through a
+  locator and at raw page coordinates for a canvas.
 - Driver-side waiting, and assertions that retry until they hold.
 - Artifacts: screenshots, PDFs, video and traces.
 - Events: popups, console output and page errors.
@@ -128,7 +130,7 @@ web stack in a real browser:
 | [`http_jl.jl`](examples/http_jl.jl) | HTTP.jl — the pattern, with nothing else in the way |
 | [`oxygen_jl.jl`](examples/oxygen_jl.jl) | Oxygen.jl — a page and the JSON API it calls |
 | [`genie_jl.jl`](examples/genie_jl.jl) | Genie.jl — routing, and a 25-second warm-up |
-| [`wglmakie_jl.jl`](examples/wglmakie_jl.jl) | WGLMakie.jl — WebGL, screenshotted and traced |
+| [`wglmakie_jl.jl`](examples/wglmakie_jl.jl) | WGLMakie.jl — WebGL, dragged, screenshotted and traced |
 
 ```console
 $ julia --project=examples examples/runexamples.jl      # all of them, both engines

@@ -1,11 +1,13 @@
-# WGLMakie.jl — an interactive plot, screenshotted and traced.
+# WGLMakie.jl — an interactive plot, dragged, screenshotted and traced.
 #
 #     julia --project=examples examples/wglmakie_jl.jl
 #     PLAYWRIGHT_JL_ENGINE=firefox julia --project=examples examples/wglmakie_jl.jl
 #
-# The hardest of the four examples, and the one that justifies the artifact
-# API: a WebGL canvas is exactly the case where "the assertion failed" tells
-# you nothing and a screenshot tells you everything.
+# The hardest of the four examples, and the one that justifies both the input
+# API and the artifact API: a WebGL canvas is exactly the case where "the
+# assertion failed" tells you nothing and a screenshot tells you everything,
+# and where the only way to exercise the app is a press, a move and a release
+# that the screenshot-only version of this example could never send.
 #
 # ## Assertion level: the rendered pixels, on both engines
 #
@@ -20,6 +22,15 @@
 # context at all here, reporting "Exhausted GL driver options" in the console.
 # The pinned build gives `has_webgl == true` and 1625 distinct colours, against
 # Chromium's ~1690, so the pixel assertion runs on both engines.
+#
+# ## The interaction half
+#
+# After the plot is up, the example right-drags across the canvas and asserts
+# the pixels moved. That is a real `Axis` pan: `panbutton` defaults to the
+# right button, so the app's own handler reacts rather than a synthetic event
+# being dispatched at it. The gesture is `mouse_move!`, `mouse_down!`,
+# `mouse_move!` with steps and `mouse_up!` — the intermediate `mousemove` the
+# handler reads is the one a single click cannot produce.
 
 using Bonito
 using WGLMakie
@@ -49,6 +60,11 @@ const OUTPUT = joinpath(@__DIR__, "output")
 const RENDERED_COLOURS = 500
 
 distinct_colours(png::Vector{UInt8}) = length(Set(vec(PNGFiles.load(IOBuffer(png)))))
+
+# How many pixels two screenshots of the same canvas disagree on. A drag the
+# app acted on moves the plot; a drag it ignored leaves the frame identical.
+changed_pixels(before::Vector{UInt8}, after::Vector{UInt8}) =
+    count(!, vec(PNGFiles.load(IOBuffer(before)) .== PNGFiles.load(IOBuffer(after))))
 
 function make_app()
     return App() do
@@ -138,6 +154,28 @@ try
                         @test rendered
                         @test colours > RENDERED_COLOURS
                         @info "WGLMakie rendered on $engine_name" colours
+
+                        # The interaction assertion. A right-drag across the
+                        # canvas pans the Axis, and a pan is a pixel change.
+                        # This is what the screenshot-only version of the
+                        # example could not do: press, move with intermediate
+                        # events, release, all through the page-level mouse.
+                        centre = evaluate(
+                            page,
+                            """() => {
+                              const r = document.querySelector('canvas').getBoundingClientRect();
+                              return {x: r.x + r.width / 2, y: r.y + r.height / 2};
+                            }""",
+                        )
+                        before_drag = screenshot_bytes(page)
+                        mouse_move!(page, centre["x"], centre["y"])
+                        mouse_down!(page; button = "right")
+                        mouse_move!(page, centre["x"] + 120, centre["y"] + 60; steps = 10)
+                        mouse_up!(page; button = "right")
+                        after_drag = screenshot_bytes(page)
+                        changed = changed_pixels(before_drag, after_drag)
+                        @info "the drag moved $changed pixels on $engine_name"
+                        @test changed > 500
 
                         # True on both engines: the fallback is a designed
                         # path, so a page error here is a real failure.

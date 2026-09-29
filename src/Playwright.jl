@@ -166,6 +166,30 @@ export playwright,
     is_checked,
     is_enabled,
     dispatch_event!,
+    # The mouse and the keyboard: page-level gestures at coordinates, and the
+    # locator actions behind them.
+    mouse_move!,
+    mouse_down!,
+    mouse_up!,
+    mouse_click!,
+    mouse_wheel!,
+    keyboard_press!,
+    keyboard_type!,
+    keyboard_down!,
+    keyboard_up!,
+    keyboard_insert_text!,
+    hover!,
+    dblclick!,
+    drag!,
+    focus!,
+    press!,
+    type!,
+    check!,
+    uncheck!,
+    select_option!,
+    tap!,
+    blur!,
+    scroll_into_view_if_needed!,
     frames,
     parent_frame,
     url,
@@ -223,6 +247,9 @@ include("api/lifecycle.jl")
 include("api/navigation.jl")
 include("api/locators.jl")
 include("api/waiting.jl")
+# After waiting.jl: scroll_into_view_if_needed! waits for the element with
+# wait_for_selector, then scrolls the handle it returns.
+include("api/input.jl")
 include("api/expect.jl")
 include("api/frames.jl")
 include("api/evaluate.jl")
