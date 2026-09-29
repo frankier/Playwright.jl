@@ -64,6 +64,20 @@ This is [`retry_until`](@ref) applied to rendering rather than to server
 start-up. It is the second place in these examples where a fixed `sleep` would be
 either a flake or a minute thrown away. See [Waiting](@ref).
 
+## Dragging the plot
+
+A screenshot proves the canvas rendered. It cannot prove the app responds to
+the user, which is the other half of a browser test and the reason this
+example now interacts before it captures.
+
+After the pixels are up, the example right-drags across the canvas and asserts
+the frame changed. That is a real `Axis` pan — `panbutton` defaults to the
+right button — driven by [`mouse_move!`](@ref), [`mouse_down!`](@ref),
+[`mouse_move!`](@ref) with `steps`, and [`mouse_up!`](@ref). The intermediate
+`mousemove` events are the part a single [`click!`](@ref) cannot express, and
+the changed-pixel count is the assertion: a drag the app ignored leaves the
+screenshot identical, so the test cannot pass on a plot that never moved.
+
 ## The artifacts
 
 [`with_tracing`](@ref) wraps the run, which ends with a [`screenshot`](@ref).

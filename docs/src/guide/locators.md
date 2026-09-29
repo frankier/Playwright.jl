@@ -138,6 +138,40 @@ evaluate(slider, "(el, v) => el.value = v", 7)
 dispatch_event!(slider, "input")            # let the listeners react
 ```
 
+The rest of the element actions are one call each, and each waits for the same
+actionability as [`click!`](@ref):
+
+| Call | Does |
+|---|---|
+| [`hover!`](@ref) | opens `:hover` and `mouseenter` handlers |
+| [`dblclick!`](@ref) | one gesture the page reads as a double click |
+| [`focus!`](@ref) / [`blur!`](@ref) | moves keyboard focus |
+| [`press!`](@ref) / [`type!`](@ref) | aims keys at the element |
+| [`check!`](@ref) / [`uncheck!`](@ref) | checkbox state |
+| [`select_option!`](@ref) | `<select>` options, by value or label |
+| [`drag!`](@ref) | HTML5 drag-and-drop onto another element |
+| [`tap!`](@ref) | a touch tap, in a `has_touch` context |
+| [`scroll_into_view_if_needed!`](@ref) | scrolls without acting |
+
+## Gestures without a selector
+
+Some things have no element to name: a canvas, a chart, a point inside a large
+image. Those take page coordinates, through the pointer and the keyboard:
+
+```julia
+mouse_move!(page, 100, 100)
+mouse_down!(page)
+mouse_move!(page, 200, 150; steps = 20)   # the moves a paint handler reads
+mouse_up!(page)
+```
+
+The intermediate `mousemove` events `steps` produces are the point — a single
+move fires one event at the destination, and a handler that tracks a path sees
+none of it. [`mouse_click!`](@ref) and [`mouse_wheel!`](@ref) are the one-shot
+forms, and [`keyboard_press!`](@ref), [`keyboard_type!`](@ref),
+[`keyboard_down!`](@ref) and [`keyboard_up!`](@ref) are the keyboard
+counterparts, aimed at whatever has focus.
+
 ## Locators inside iframes
 
 An iframe is a separate document, and a page-level locator cannot see into one.

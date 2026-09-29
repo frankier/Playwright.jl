@@ -55,6 +55,25 @@ pdf
 pdf_bytes
 ```
 
+## Mouse and keyboard
+
+Page-level gestures at viewport coordinates — the layer a canvas or a paint
+handler needs, where there is no selector to resolve. The locator-scoped forms
+are under Acting on an element below.
+
+```@docs
+mouse_move!
+mouse_down!
+mouse_up!
+mouse_click!
+mouse_wheel!
+keyboard_press!
+keyboard_type!
+keyboard_down!
+keyboard_up!
+keyboard_insert_text!
+```
+
 ## Locator construction
 
 ```@docs
@@ -82,8 +101,20 @@ is_enabled
 
 ```@docs
 click!
+dblclick!
+drag!
+hover!
+focus!
+blur!
+press!
+type!
 set_value!
 dispatch_event!
+check!
+uncheck!
+select_option!
+tap!
+scroll_into_view_if_needed!
 element_handle
 ```
 

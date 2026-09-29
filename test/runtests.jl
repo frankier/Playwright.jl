@@ -137,6 +137,9 @@ include(joinpath(@__DIR__, "waits.jl"))
     include_traced("test_dialogs.jl")
     include_traced("test_uploads.jl")
     include_traced("test_locator_eval.jl")
+    # After test_locator_eval.jl: the input wrappers are another face of the
+    # same generated layer, and reuse timeout_fixture and waiting_request.
+    include_traced("test_input.jl")
     include_traced("test_closed.jl")
     include_traced("test_expect.jl")
     include_traced("test_metadata.jl")
@@ -147,6 +150,9 @@ include(joinpath(@__DIR__, "waits.jl"))
         include_traced("test_fixtures.jl")
         include_traced("test_evaluate.jl")
         include_traced("test_frames.jl")
+        # After test_smoke.jl (whose with_fixture_server it uses) and
+        # test_frames.jl (whose engine loop it follows).
+        include_traced("test_smoke_input.jl")
         include_traced("test_parity.jl")
         include_traced("test_smoke_network.jl")
         # After test_smoke_network.jl: reuses its with_browser, within_deadline
