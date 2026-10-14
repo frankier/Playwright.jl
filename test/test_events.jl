@@ -490,7 +490,7 @@ end
         f = event_fixture()
         # What stays deferred is what still has no wrapper type. The four
         # network events are supported, and are asserted as such below.
-        for bad in (:websocket, :worker, :bindingcall)
+        for bad in (:worker, :bindingcall)
             err = try
                 expect_event(f.context, bad) do
                 end
@@ -579,15 +579,8 @@ end
         for key in (:worker, :bindingcall)
             @test occursin("no accessors yet", Playwright.DEFERRED_EVENTS[key])
         end
-        # :websocket is :route's case, not :worker's. The observation type has no
-        # accessors, but a reader who has just used route_web_socket! would read
-        # "no accessors yet" as "WebSockets are unsupported". So this asserts on
-        # the message a user actually sees.
-        @test haskey(Playwright.DEFERRED_EVENTS, :websocket)
-        @test occursin("route_web_socket!", Playwright.DEFERRED_EVENTS[:websocket])
-        # The qualifier carries it: *observation* has no accessors, WebSockets
-        # are not unsupported.
-        @test occursin("WebSocket observation", Playwright.DEFERRED_EVENTS[:websocket])
+        @test haskey(Playwright.PAGE_EVENTS, :websocket)
+        @test !haskey(Playwright.DEFERRED_EVENTS, :websocket)
         # :dialog is :route's case, not :worker's: the type is wrapped and
         # usable, so the message must send the reader to the API that answers
         # dialogs rather than imply none exists.

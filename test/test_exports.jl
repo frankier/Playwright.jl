@@ -155,6 +155,9 @@
         :stop_har_recording!,
         :with_har_recording,
         # WebSocket routing
+        :WebSocket,
+        :WebSocketFrame,
+        :is_closed,
         :WebSocketRoute,
         :WebSocketRouteRegistration,
         :route_web_socket!,

@@ -23,6 +23,9 @@ cannot miss anything the block does.
 |---|---|---|
 | `Page` | `:close`, `:crash` | the [`Page`](@ref) |
 | `Page` | `:frameattached`, `:framedetached` | [`Frame`](@ref) |
+| `Page` | `:websocket` | [`WebSocket`](@ref) |
+| `WebSocket` | `:framesent`, `:framereceived` | [`WebSocketFrame`](@ref) |
+| `WebSocket` | `:close` | the `WebSocket` |
 | `Page` | `:download` | [`Download`](@ref) — see [`expect_download`](@ref) |
 | `Page` | `:filechooser` | [`FileChooser`](@ref) — see [`expect_file_chooser`](@ref) |
 | `BrowserContext` | `:page` | [`Page`](@ref) — this is how you catch a popup |
@@ -46,10 +49,24 @@ here: [`Route`](@ref) is wrapped and fully usable, but you intercept with
 [`route!`](@ref) or [`with_route`](@ref). An event would hand you a route with
 no guarantee that anyone settles it.
 
-`:websocket` sits in both kinds, and it is easy to read the wrong half into it.
-Observing a socket yields a `WebSocket` with no accessors, so that event stays
-deferred. Sockets themselves work: use [`route_web_socket!`](@ref) instead of an
-event. "No accessors yet" describes the observation, not WebSockets.
+To observe a page's own socket traffic, catch `:websocket` before the page opens
+the connection, then subscribe to the socket's frame events:
+
+```julia
+socket = expect_event(page, :websocket) do
+    click!(locator(page, "#connect"))
+end
+with_events(socket, :framesent) do frames
+    click!(locator(page, "#send"))
+    frame = next_event(frames)
+    @info "sent" frame.payload frame.opcode
+end
+```
+
+`frame.payload` is a `String` for text (`opcode == 1`) and a `Vector{UInt8}`
+for binary (`opcode == 2`). [`url`](@ref) gives the socket URL and
+[`is_closed`](@ref) reports whether it closed. Use [`route_web_socket!`](@ref)
+when you need to intercept or change traffic.
 
 `:dialog` is `:route`'s case, and permanently so. Answer dialogs through
 [`with_dialog`](@ref) and the handler registry. On the wire, subscribing is

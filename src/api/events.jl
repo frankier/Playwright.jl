@@ -307,6 +307,7 @@ const PAGE_EVENTS = Dict{Symbol,EventSpec}(
     :crash => EventSpec("crash", owner_payload),
     :frameattached => EventSpec("frameAttached", channel_payload("frame", Frame)),
     :framedetached => EventSpec("frameDetached", channel_payload("frame", Frame)),
+    :websocket => EventSpec("webSocket", channel_payload("webSocket", WebSocket)),
     # NOT opt-in: `download` is absent from page.yml's updateSubscription
     # enum, so the driver sends it unconditionally. Its payload reaches into
     # params for `url` and
@@ -359,6 +360,13 @@ const CONTEXT_EVENTS = Dict{Symbol,EventSpec}(
     ),
 )
 
+const WEBSOCKET_EVENTS = Dict{Symbol,EventSpec}(
+    :framesent => EventSpec("frameSent", (_owner, params) -> web_socket_frame(params)),
+    :framereceived =>
+        EventSpec("frameReceived", (_owner, params) -> web_socket_frame(params)),
+    :close => EventSpec("close", owner_payload),
+)
+
 # Events the driver really does emit but that `expect_event` does not serve.
 # Named separately so the error can say "deferred" rather than "no such event"
 # — the difference between a roadmap entry and a typo.
@@ -375,10 +383,6 @@ const DEFERRED_EVENTS = Dict(
     # handed to a caller yet.
     :worker => "Worker has no accessors yet, so the event would yield nothing usable",
     :bindingcall => "BindingCall has no accessors yet, so the event would yield nothing usable",
-    # Observing a socket has no accessors. Intercepting one does, so the message
-    # names `route_web_socket!` — a reader who has just used it would otherwise
-    # read "no accessors yet" as "WebSockets are unsupported".
-    :websocket => "WebSocket observation has no accessors yet; to intercept a socket use route_web_socket!",
     # `Route` is wrapped and fully usable. It is not offered as an *event*,
     # because an event would hand you a route with no guarantee anyone settles
     # it. `route!` is the supported path.
@@ -431,6 +435,7 @@ const PAGE_NETWORK_EVENTS = Dict{Symbol,EventSpec}(
 
 events_for(page::Page) = merge(PAGE_EVENTS, PAGE_NETWORK_EVENTS)
 events_for(::BrowserContext) = CONTEXT_EVENTS
+events_for(::WebSocket) = WEBSOCKET_EVENTS
 events_for(owner::ChannelOwner) = Dict{Symbol,EventSpec}()
 
 # `:frameAttached`, `:frameattached` and `"frameAttached"` are the same event.
@@ -632,6 +637,9 @@ Supported events, by owner:
 |---|---|---|
 | `Page` | `:close`, `:crash` | the `Page` |
 | `Page` | `:frameattached`, `:framedetached` | [`Frame`](@ref) |
+| `Page` | `:websocket` | [`WebSocket`](@ref) |
+| `WebSocket` | `:framesent`, `:framereceived` | [`WebSocketFrame`](@ref) |
+| `WebSocket` | `:close` | the `WebSocket` |
 | `BrowserContext` | `:page` | [`Page`](@ref) — this is how you catch a popup |
 | `BrowserContext` | `:close` | the `BrowserContext` |
 | `BrowserContext` | `:console` | [`ConsoleMessage`](@ref) |
@@ -640,7 +648,7 @@ Supported events, by owner:
 | `Page` | `:filechooser` | [`FileChooser`](@ref) — or [`expect_file_chooser`](@ref) |
 
 Anything else raises `ArgumentError`. What remains in `DEFERRED_EVENTS` is
-deferred rather than designed away — those payload types have no accessors yet.
+deferred rather than designed away.
 
 See also [`wait_for_event`](@ref) and [`with_events`](@ref).
 """

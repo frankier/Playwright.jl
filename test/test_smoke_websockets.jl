@@ -85,6 +85,42 @@ function with_routed_socket(body, bt, base_url, handler; label = "ws")
     end
 end
 
+@testset "smoke: WebSocket observation" begin
+    with_websocket_server() do base_url, _
+        playwright() do pw
+            for eng in SMOKE_ENGINES
+                observed = within_deadline("$eng ws observation", 120.0) do
+                    with_browser(engine(pw, eng)) do browser
+                        page = new_page(browser)
+                        goto!(page, "$base_url/websocket.html")
+                        socket = expect_event(page, :websocket) do
+                            click!(locator(page, "#open"))
+                        end
+                        expect(locator(page, "#status"); to_have_text = "open")
+                        with_events(socket, :framesent) do sent
+                            with_events(socket, :framereceived) do received
+                                click!(locator(page, "#send"))
+                                outgoing = next_event(sent; timeout = 10_000)
+                                incoming = next_event(received; timeout = 10_000)
+                                click!(locator(page, "#send-binary"))
+                                binary = next_event(sent; timeout = 10_000)
+                                return (url(socket), outgoing, incoming, binary)
+                            end
+                        end
+                    end
+                end
+                @test endswith(observed[1], "/ws")
+                @test observed[2].payload == "ping"
+                @test observed[2].opcode == 1
+                @test observed[3].payload == "from-server:ping"
+                @test observed[3].opcode == 1
+                @test observed[4].payload == UInt8[1, 2, 3, 4]
+                @test observed[4].opcode == 2
+            end
+        end
+    end
+end
+
 @testset "smoke: WebSocket routing" begin
     with_websocket_server() do base_url, connections
         playwright() do pw
