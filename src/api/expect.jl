@@ -88,6 +88,8 @@ const MATCHERS = Dict{Symbol,Any}(
     ),
     :to_have_count =>
         (expression = "to.have.count", params = v -> (; expectedNumber = Float64(v))),
+    # Routed to Page.expectScreenshot below, rather than Frame.expect.
+    :to_have_screenshot => (expression = "", params = _ -> (;)),
     :to_be_visible => (expression = "to.be.visible", params = _ -> (;)),
     :to_be_hidden => (expression = "to.be.hidden", params = _ -> (;)),
     :to_be_enabled => (expression = "to.be.enabled", params = _ -> (;)),
@@ -159,6 +161,73 @@ end
 const BOOLEAN_MATCHERS =
     (:to_be_visible, :to_be_hidden, :to_be_enabled, :to_be_disabled, :to_be_checked)
 
+function screenshot_page(frame::Frame)
+    conn = frame.connection
+    return lock(conn.lock) do
+        guid = frame.guid
+        while true
+            parent = get(conn.settings_parents, guid, get(conn.parents, guid, nothing))
+            parent === nothing && break
+            obj = get(conn.objects, parent, nothing)
+            obj isa Page && return obj
+            guid = parent
+        end
+        throw(TargetClosedError("the page containing this locator has been closed";
+            name = "TargetClosedError"))
+    end
+end
+
+function screenshot_limit(name::Symbol, value, upper)
+    value === nothing && return nothing
+    valid = value isa Real && isfinite(value) && 0 <= value <= upper
+    name == :max_diff_pixels && (valid &= value isa Integer)
+    valid || throw(ArgumentError("`$name` must be between 0 and $upper" *
+        (name == :max_diff_pixels ? " and an integer" : "")))
+    return value
+end
+
+function expect_screenshot(
+    loc::Locator,
+    path,
+    ms::Int;
+    max_diff_pixels = nothing,
+    max_diff_pixel_ratio = nothing,
+    threshold = nothing,
+)
+    path isa AbstractString || throw(ArgumentError("`to_have_screenshot` needs a PNG path"))
+    screenshot_limit(:max_diff_pixels, max_diff_pixels, typemax(Int))
+    screenshot_limit(:max_diff_pixel_ratio, max_diff_pixel_ratio, 1)
+    screenshot_limit(:threshold, threshold, 1)
+    baseline = read(path)
+    (length(baseline) >= 8 &&
+     baseline[1:8] == UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) ||
+        throw(ArgumentError("`to_have_screenshot` baseline is not a PNG: $path"))
+    page = screenshot_page(loc.frame)
+    try
+        _page_expect_screenshot(page;
+            expected = baseline,
+            locator = Dict("frame" => loc.frame, "selector" => loc.selector),
+            isNot = false,
+            timeout = ms,
+            comparator = "pixelmatch",
+            maxDiffPixels = max_diff_pixels,
+            maxDiffPixelRatio = max_diff_pixel_ratio,
+            threshold,
+        )
+    catch e
+        (e isa ExpectFailure || (e isa DriverError && startswith(e.message, "Expect failed"))) ||
+            rethrow()
+        custom = e isa ExpectFailure ? custom_error_message(e) : nothing
+        message = "to_have_screenshot failed on locator($(repr(loc.selector)))\n" *
+                  "  baseline: $(repr(path))\n" *
+                  "  received: $(custom === nothing ? e.message : custom)"
+        e isa ExpectFailure && timed_out(e) &&
+            (message *= "\n  (gave up after $(ms)ms of retrying)")
+        throw(AssertionFailure(message; name = "AssertionFailure", stack = e.stack))
+    end
+    return nothing
+end
+
 """
     expect(loc::Locator; timeout=nothing, matchers...) -> loc
 
@@ -185,6 +254,7 @@ expect(locator(page, "#link"); to_have_attribute = "href" => "/somewhere")
 | `to_have_value` | an input's value |
 | `to_have_count` | how many elements the locator matches |
 | `to_have_attribute` | `name => value` |
+| `to_have_screenshot` | path to a baseline PNG; accepts `max_diff_pixels`, `max_diff_pixel_ratio`, and `threshold` |
 | `to_be_visible`, `to_be_hidden` | `true`/`false` |
 | `to_be_enabled`, `to_be_disabled` | `true`/`false` |
 | `to_be_checked` | `true`/`false` |
@@ -199,7 +269,14 @@ each is its own retrying check.
 
 For a condition this cannot express, [`retry_until`](@ref) is the escape hatch.
 """
-function expect(loc::Locator; timeout::MaybeTimeout = nothing, matchers...)
+function expect(
+    loc::Locator;
+    timeout::MaybeTimeout = nothing,
+    max_diff_pixels = nothing,
+    max_diff_pixel_ratio = nothing,
+    threshold = nothing,
+    matchers...,
+)
     isempty(matchers) && throw(
         ArgumentError(
             "expect needs at least one matcher, e.g. " *
@@ -207,6 +284,10 @@ function expect(loc::Locator; timeout::MaybeTimeout = nothing, matchers...)
             join(sort!([":$k" for k in keys(MATCHERS)]), ", "),
         ),
     )
+    if !haskey(matchers, :to_have_screenshot) &&
+       any(x -> x !== nothing, (max_diff_pixels, max_diff_pixel_ratio, threshold))
+        throw(ArgumentError("screenshot tolerances require `to_have_screenshot`"))
+    end
     ms = resolve_timeout(loc, timeout)
     for (name, raw) in pairs(matchers)
         spec = lookup_matcher(
@@ -216,6 +297,11 @@ function expect(loc::Locator; timeout::MaybeTimeout = nothing, matchers...)
             "a Locator",
             "the whole page or frame",
         )
+        if name == :to_have_screenshot
+            raw isa Not && throw(ArgumentError("`to_have_screenshot` does not support `Not`"))
+            expect_screenshot(loc, raw, ms; max_diff_pixels, max_diff_pixel_ratio, threshold)
+            continue
+        end
         expected, is_not = negated(raw)
         # `to_be_visible = false` reads as "assert it is not visible".
         if name in BOOLEAN_MATCHERS

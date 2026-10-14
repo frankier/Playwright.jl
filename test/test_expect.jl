@@ -32,6 +32,86 @@ expect_failure_reply(fake, id; received = Dict("s" => "Hello"), extra...) = driv
 )
 
 @testset "expect" begin
+    @testset "screenshot comparison sends a locator, baseline and tolerance" begin
+        f = timeout_fixture()
+        baseline = joinpath(mktempdir(), "chart.png")
+        png = UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+        write(baseline, png)
+        loc = Playwright.locator(f.childframe, "#chart")
+        task = @async expect(loc; to_have_screenshot = baseline,
+            max_diff_pixels = 50, max_diff_pixel_ratio = 0.1, threshold = 0.2)
+        sent = next_message(f.fake)
+        @test sent["guid"] == "page@1"
+        @test sent["method"] == "expectScreenshot"
+        @test sent["params"]["locator"] ==
+              Dict("frame" => Dict("guid" => "childframe@1"), "selector" => "#chart")
+        @test sent["params"]["expected"] == base64encode(png)
+        @test sent["params"]["maxDiffPixels"] == 50
+        @test sent["params"]["maxDiffPixelRatio"] == 0.1
+        @test sent["params"]["threshold"] == 0.2
+        reply_ok(f.fake, sent["id"], Dict{String,Any}())
+        @test await(task) === loc
+
+        @test_throws ArgumentError expect(loc; to_have_screenshot = baseline,
+            max_diff_pixels = -1)
+        @test_throws ArgumentError expect(loc; to_have_screenshot = baseline,
+            max_diff_pixel_ratio = 1.1)
+        @test_throws ArgumentError expect(loc; to_have_screenshot = Not(baseline))
+        @test_throws ArgumentError expect(loc; to_have_text = "x", max_diff_pixels = 1)
+        shutdown!(f.fake)
+    end
+
+    @testset "screenshot mismatch names the pixel difference" begin
+        f = timeout_fixture()
+        baseline = joinpath(mktempdir(), "chart.png")
+        write(baseline, UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+        loc = Playwright.locator(f.frame, "#chart")
+        task = @async expect(loc; to_have_screenshot = baseline, timeout = 1_000)
+        sent = next_message(f.fake)
+        driver_send(f.fake, Dict(
+            "id" => sent["id"],
+            "error" => Dict("error" => Dict("message" => "Expect failed",
+                "name" => "ExpectError", "stack" => "ExpectError: Expect failed")),
+            "errorDetails" => Dict("customErrorMessage" => "42 pixels differ",
+                "timedOut" => true),
+        ))
+        err = try
+            await(task)
+            nothing
+        catch e
+            e isa TaskFailedException ? e.task.result : e
+        end
+        @test err isa Playwright.AssertionFailure
+        @test occursin("42 pixels differ", err.message)
+        @test occursin(baseline, err.message)
+        @test occursin("1000ms", err.message)
+        shutdown!(f.fake)
+    end
+
+    @testset "screenshot mismatch without errorDetails uses the call log" begin
+        f = timeout_fixture()
+        baseline = joinpath(mktempdir(), "chart.png")
+        write(baseline, UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+        task = @async expect(Playwright.locator(f.frame, "#chart");
+            to_have_screenshot = baseline)
+        sent = next_message(f.fake)
+        driver_send(f.fake, Dict(
+            "id" => sent["id"],
+            "error" => Dict("error" => Dict("message" => "Expect failed",
+                "name" => "Error", "stack" => "Error: Expect failed")),
+            "log" => ["40000 pixels are different"],
+        ))
+        err = try
+            await(task)
+            nothing
+        catch e
+            e isa TaskFailedException ? e.task.result : e
+        end
+        @test err isa Playwright.AssertionFailure
+        @test occursin("40000 pixels", err.message)
+        shutdown!(f.fake)
+    end
+
     @testset "to_have_text sends the probed expression and payload" begin
         f = timeout_fixture()
         set_default_timeout!(f.context, 2_000)

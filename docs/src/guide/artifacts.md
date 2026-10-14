@@ -104,6 +104,7 @@ destination back. Want bytes, and you call the function that says bytes.**
 ```julia
 screenshot(page; path = "artifacts/checkout.png")   # -> the path
 bytes = screenshot_bytes(page)                      # -> Vector{UInt8}
+screenshot(locator(page, "#chart"); path = "baselines/chart.png")
 ```
 
 [`screenshot`](@ref) requires `path` and returns it. [`screenshot_bytes`](@ref)

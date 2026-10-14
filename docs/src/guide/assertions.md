@@ -98,6 +98,26 @@ distinction matters — a summary that should read "1 failed" rather than
 end
 ```
 
+## Screenshot assertions
+
+Capture an element baseline once, review and commit the PNG, then compare later
+renders against it. Playwright compares decoded pixels and retries while the
+image is changing:
+
+```julia
+chart = locator(page, "#chart")
+screenshot(chart; path = "baselines/chart.png")  # baseline creation
+expect(chart; to_have_screenshot = "baselines/chart.png")
+expect(chart; to_have_screenshot = "baselines/chart.png", max_diff_pixels = 50)
+```
+
+`max_diff_pixel_ratio` allows a fraction of the image to differ, and
+`threshold` (between 0 and 1) adjusts the per-pixel color sensitivity. The
+default pixel count limit is zero. A mismatch raises `AssertionFailure` with
+the baseline path and the driver's pixel difference explanation. Capture
+baselines and run comparisons on the same browser, viewport, device scale and
+operating system for stable results.
+
 ## When `expect` does not fit
 
 `retry_until` is the escape hatch for conditions no matcher expresses — see
