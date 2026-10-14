@@ -496,7 +496,11 @@ tryrun(cmd) =
                         heading = locator(page, "h1")
                         png_magic = UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
 
-                        bytes = screenshot_bytes(heading; animations = "disabled", scale = "css")
+                        bytes = screenshot_bytes(
+                            heading;
+                            animations = "disabled",
+                            scale = "css",
+                        )
                         @test bytes[1:8] == png_magic
                         # PNG width is the big-endian integer in bytes 17:20.
                         width = foldl((n, b) -> (n << 8) | Int(b), bytes[17:20]; init = 0)
@@ -510,14 +514,21 @@ tryrun(cmd) =
                         try
                             @test screenshot_bytes(handle; type = "jpeg", quality = 70)[1:2] ==
                                   UInt8[0xff, 0xd8]
-                            @test screenshot_bytes(handle; mask = [heading], mask_color = "#ff0000")[1:8] ==
-                                  png_magic
+                            @test screenshot_bytes(
+                                handle;
+                                mask = [heading],
+                                mask_color = "#ff0000",
+                            )[1:8] == png_magic
                         finally
                             dispose!(handle)
                         end
 
-                        evaluate(page, "() => setTimeout(() => { const el = document.createElement('div'); el.id = 'late-shot'; el.textContent = 'late'; document.body.append(el) }, 100)")
-                        @test screenshot_bytes(locator(page, "#late-shot"))[1:8] == png_magic
+                        evaluate(
+                            page,
+                            "() => setTimeout(() => { const el = document.createElement('div'); el.id = 'late-shot'; el.textContent = 'late'; document.body.append(el) }, 100)",
+                        )
+                        @test screenshot_bytes(locator(page, "#late-shot"))[1:8] ==
+                              png_magic
                     finally
                         close!(browser)
                     end
