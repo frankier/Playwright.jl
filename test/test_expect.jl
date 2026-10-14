@@ -102,7 +102,7 @@ expect_failure_reply(fake, id; received = Dict("s" => "Hello"), extra...) = driv
         end
         @test err isa Playwright.AssertionFailure
         @test occursin("42 pixels differ", err.message)
-        @test occursin(baseline, err.message)
+        @test occursin(repr(baseline), err.message)
         @test occursin("1000ms", err.message)
         shutdown!(f.fake)
     end
