@@ -217,13 +217,17 @@ difference is that it answers from a recording rather than from a closure, which
 is what a test needs when it wants the real API's answers and no API. It has a
 guide of its own: [HAR: recording and replaying the network](@ref).
 
-## WebSockets are intercepted, not observed
+## WebSocket routing
 
 A socket is a conversation, not a request with a response, so it has no settle
 and nothing to fulfill. [`route_web_socket!`](@ref) hands your handler a
 [`WebSocketRoute`](@ref). The handler *sets the conversation up*: it registers
 callbacks, connects if you want a proxy, then returns. The messages arrive
 afterwards.
+
+To watch a page's own socket without intercepting it, use the `:websocket`
+event and the socket's `:framesent` / `:framereceived` streams; see
+[Events](@ref).
 
 ```julia
 # Mock: the real server is never contacted.

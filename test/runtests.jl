@@ -123,6 +123,7 @@ include(joinpath(@__DIR__, "waits.jl"))
     include_traced("test_globs.jl")
     include_traced("test_network.jl")
     include_traced("test_events.jl")
+    include_traced("test_websocket_observation.jl")
     include_traced("test_routing.jl")
     # After test_routing.jl: HAR replay is a route! handler, so its tests
     # reuse send_route and last_patterns from there.

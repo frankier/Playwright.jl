@@ -97,6 +97,9 @@ export playwright,
     stop_har_recording!,
     with_har_recording,
     # WebSocket routing
+    WebSocket,
+    WebSocketFrame,
+    is_closed,
     WebSocketRoute,
     WebSocketRouteRegistration,
     route_web_socket!,
@@ -243,6 +246,7 @@ include("objects.jl")
 include("timeouts.jl")
 include("api/globs.jl")
 include("api/events.jl")
+include("api/websocket_observation.jl")
 include("api/lifecycle.jl")
 include("api/navigation.jl")
 include("api/locators.jl")

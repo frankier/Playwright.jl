@@ -213,6 +213,12 @@ function dispatch(conn::Connection, msg::AbstractDict)
         # Reversing these two lines makes `:framedetached` hand back nothing.
         deliver_event(conn, msg["guid"], method, msg["params"])
         frame_detached(conn, msg["params"])
+    elseif method == "close" && lookup_object(conn, msg["guid"]) isa WebSocket
+        lock(conn.lock) do
+            socket = get(conn.objects, msg["guid"], nothing)
+            socket isa WebSocket && (socket.initializer["isClosed"] = true)
+        end
+        deliver_event(conn, msg["guid"], method, get(msg, "params", Dict{String,Any}()))
     else
         # Any other server event goes to whoever subscribed. An unknown guid or
         # an event nobody wants must never kill the read loop, so routing is

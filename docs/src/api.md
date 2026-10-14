@@ -310,6 +310,14 @@ stop_har_recording!
 with_har_recording
 ```
 
+### WebSocket observation
+
+```@docs
+WebSocket
+WebSocketFrame
+is_closed
+```
+
 ### WebSocket routing
 
 Intercepting a socket, rather than observing one. A socket is a conversation with
