@@ -74,11 +74,11 @@ keyword was passed. That is the artifact family's rule: **if you named a
 destination you get the destination back. If you want bytes you call the
 function that says bytes.**
 
-The viewport only — this package does not expose full-page or element
-screenshots. `timeout` defaults to the action timeout in force for `page` — see
-[`set_default_timeout!`](@ref). For a failing test, [`with_page`](@ref)
-captures one automatically, and [`pdf`](@ref) is the Chromium-only print
-equivalent.
+The viewport only. For one element, pass a [`Locator`](@ref) or
+[`ElementHandle`](@ref) instead. `timeout` defaults to the action timeout in
+force for `page` — see [`set_default_timeout!`](@ref). For a failing test,
+[`with_page`](@ref) captures one automatically, and [`pdf`](@ref) is the
+Chromium-only print equivalent.
 """
 function screenshot(page::Page; path::AbstractString, timeout::MaybeTimeout = nothing)
     write(path, screenshot_bytes(page; timeout))
@@ -100,3 +100,70 @@ See [`screenshot`](@ref) for the write-to-disk form, which returns the path.
 """
 screenshot_bytes(page::Page; timeout::MaybeTimeout = nothing) =
     _page_screenshot(page; timeout = resolve_timeout(page, timeout), type = "png")
+
+"""
+    screenshot(element::Union{Locator,ElementHandle}; path, kwargs...) -> String
+
+Capture one element, write its image to `path`, and return `path`. See
+[`screenshot_bytes`](@ref) for the available image options and an in-memory
+result.
+"""
+function screenshot(element::Union{Locator,ElementHandle}; path::AbstractString, kwargs...)
+    write(path, screenshot_bytes(element; kwargs...))
+    return path
+end
+
+"""
+    screenshot_bytes(element::Union{Locator,ElementHandle}; timeout=nothing,
+                     animations=nothing, caret=nothing, mask=nothing,
+                     mask_color=nothing, omit_background=nothing, type="png",
+                     quality=nothing, scale=nothing, style=nothing) -> Vector{UInt8}
+
+Capture just the matched element and return its image bytes. A `Locator` waits
+for an attached match and resolves it on each call; an `ElementHandle` captures
+the element it already references. The screenshot call waits for the element to
+be visible and stable. `timeout` uses the action timeout for the element.
+
+`type` is `"png"` or `"jpeg"`; `quality` applies to JPEG. `mask` is a vector of
+locators whose matching elements are covered by `mask_color`. The remaining
+options map to Playwright's element screenshot options.
+"""
+function screenshot_bytes(
+    element::ElementHandle;
+    timeout::MaybeTimeout = nothing,
+    animations::Union{AbstractString,Nothing} = nothing,
+    caret::Union{AbstractString,Nothing} = nothing,
+    mask::Union{AbstractVector{<:Locator},Nothing} = nothing,
+    mask_color::Union{AbstractString,Nothing} = nothing,
+    omit_background::Union{Bool,Nothing} = nothing,
+    type::AbstractString = "png",
+    quality::Union{Real,Nothing} = nothing,
+    scale::Union{AbstractString,Nothing} = nothing,
+    style::Union{AbstractString,Nothing} = nothing,
+)
+    wire_mask = mask === nothing ? nothing :
+                [Dict("frame" => loc.frame, "selector" => loc.selector) for loc in mask]
+    return _element_handle_screenshot(
+        element;
+        timeout = resolve_timeout(element, timeout),
+        animations,
+        caret,
+        mask = wire_mask,
+        maskColor = mask_color,
+        omitBackground = omit_background,
+        type,
+        quality,
+        scale,
+        style,
+    )
+end
+
+function screenshot_bytes(loc::Locator; timeout::MaybeTimeout = nothing, kwargs...)
+    resolved = resolve_timeout(loc, timeout)
+    handle = wait_for_selector(loc; state = :attached, timeout = resolved)
+    try
+        return screenshot_bytes(handle; timeout = resolved, kwargs...)
+    finally
+        dispose!(handle)
+    end
+end
