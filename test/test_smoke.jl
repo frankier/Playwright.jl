@@ -490,9 +490,12 @@ tryrun(cmd) =
                     @test screenshot(chart; path = baseline) == baseline
                     @test expect(chart; to_have_screenshot = baseline) === chart
                     evaluate(page, "document.body.style.background = 'rgb(255, 0, 0)'")
-                    @test_throws Playwright.AssertionFailure expect(chart;
-                        to_have_screenshot = baseline, max_diff_pixels = 50,
-                        timeout = 1_000)
+                    @test_throws Playwright.AssertionFailure expect(
+                        chart;
+                        to_have_screenshot = baseline,
+                        max_diff_pixels = 50,
+                        timeout = 1_000,
+                    )
 
                     close!(browser)
                 end

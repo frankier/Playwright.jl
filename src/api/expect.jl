@@ -172,8 +172,12 @@ function screenshot_page(frame::Frame)
             obj isa Page && return obj
             guid = parent
         end
-        throw(TargetClosedError("the page containing this locator has been closed";
-            name = "TargetClosedError"))
+        throw(
+            TargetClosedError(
+                "the page containing this locator has been closed";
+                name = "TargetClosedError",
+            ),
+        )
     end
 end
 
@@ -181,8 +185,12 @@ function screenshot_limit(name::Symbol, value, upper)
     value === nothing && return nothing
     valid = value isa Real && isfinite(value) && 0 <= value <= upper
     name == :max_diff_pixels && (valid &= value isa Integer)
-    valid || throw(ArgumentError("`$name` must be between 0 and $upper" *
-        (name == :max_diff_pixels ? " and an integer" : "")))
+    valid || throw(
+        ArgumentError(
+            "`$name` must be between 0 and $upper" *
+            (name == :max_diff_pixels ? " and an integer" : ""),
+        ),
+    )
     return value
 end
 
@@ -199,12 +207,14 @@ function expect_screenshot(
     screenshot_limit(:max_diff_pixel_ratio, max_diff_pixel_ratio, 1)
     screenshot_limit(:threshold, threshold, 1)
     baseline = read(path)
-    (length(baseline) >= 8 &&
-     baseline[1:8] == UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) ||
-        throw(ArgumentError("`to_have_screenshot` baseline is not a PNG: $path"))
+    (
+        length(baseline) >= 8 &&
+        baseline[1:8] == UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+    ) || throw(ArgumentError("`to_have_screenshot` baseline is not a PNG: $path"))
     page = screenshot_page(loc.frame)
     try
-        _page_expect_screenshot(page;
+        _page_expect_screenshot(
+            page;
             expected = baseline,
             locator = Dict("frame" => loc.frame, "selector" => loc.selector),
             isNot = false,
@@ -215,13 +225,17 @@ function expect_screenshot(
             threshold,
         )
     catch e
-        (e isa ExpectFailure || (e isa DriverError && startswith(e.message, "Expect failed"))) ||
-            rethrow()
+        (
+            e isa ExpectFailure ||
+            (e isa DriverError && startswith(e.message, "Expect failed"))
+        ) || rethrow()
         custom = e isa ExpectFailure ? custom_error_message(e) : nothing
-        message = "to_have_screenshot failed on locator($(repr(loc.selector)))\n" *
-                  "  baseline: $(repr(path))\n" *
-                  "  received: $(custom === nothing ? e.message : custom)"
-        e isa ExpectFailure && timed_out(e) &&
+        message =
+            "to_have_screenshot failed on locator($(repr(loc.selector)))\n" *
+            "  baseline: $(repr(path))\n" *
+            "  received: $(custom === nothing ? e.message : custom)"
+        e isa ExpectFailure &&
+            timed_out(e) &&
             (message *= "\n  (gave up after $(ms)ms of retrying)")
         throw(AssertionFailure(message; name = "AssertionFailure", stack = e.stack))
     end
@@ -298,8 +312,16 @@ function expect(
             "the whole page or frame",
         )
         if name == :to_have_screenshot
-            raw isa Not && throw(ArgumentError("`to_have_screenshot` does not support `Not`"))
-            expect_screenshot(loc, raw, ms; max_diff_pixels, max_diff_pixel_ratio, threshold)
+            raw isa Not &&
+                throw(ArgumentError("`to_have_screenshot` does not support `Not`"))
+            expect_screenshot(
+                loc,
+                raw,
+                ms;
+                max_diff_pixels,
+                max_diff_pixel_ratio,
+                threshold,
+            )
             continue
         end
         expected, is_not = negated(raw)
