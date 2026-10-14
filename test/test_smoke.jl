@@ -485,6 +485,15 @@ tryrun(cmd) =
                     bytes = screenshot_bytes(page)
                     @test length(bytes) > 8 && bytes[1:8] == png_magic
 
+                    chart = locator(page, "body")
+                    baseline = joinpath(mktempdir(), "body.png")
+                    @test screenshot(chart; path = baseline) == baseline
+                    @test expect(chart; to_have_screenshot = baseline) === chart
+                    evaluate(page, "document.body.style.background = 'rgb(255, 0, 0)'")
+                    @test_throws Playwright.AssertionFailure expect(chart;
+                        to_have_screenshot = baseline, max_diff_pixels = 50,
+                        timeout = 1_000)
+
                     close!(browser)
                 end
 
