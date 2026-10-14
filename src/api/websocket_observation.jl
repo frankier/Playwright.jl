@@ -43,6 +43,6 @@ function is_closed(socket::WebSocket)
     conn = socket.connection
     return lock(conn.lock) do
         get(socket.initializer, "isClosed", false) === true ||
-        !haskey(conn.objects, socket.guid)
+            !haskey(conn.objects, socket.guid)
     end
 end
