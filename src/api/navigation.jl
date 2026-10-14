@@ -141,8 +141,9 @@ function screenshot_bytes(
     scale::Union{AbstractString,Nothing} = nothing,
     style::Union{AbstractString,Nothing} = nothing,
 )
-    wire_mask = mask === nothing ? nothing :
-                [Dict("frame" => loc.frame, "selector" => loc.selector) for loc in mask]
+    wire_mask =
+        mask === nothing ? nothing :
+        [Dict("frame" => loc.frame, "selector" => loc.selector) for loc in mask]
     return _element_handle_screenshot(
         element;
         timeout = resolve_timeout(element, timeout),
