@@ -14,11 +14,19 @@ matters:
 
 ```julia
 using Test
+using Playwright
 
-response = goto!(page, "https://example.com"; wait_until = "load")
-@test response !== nothing
-@test status(response) == 200
-expect(page; to_have_title = "Example Domain")
+playwright() do pw
+    browser = launch(pw.chromium; headless = true)
+    try
+        page = new_page(browser)
+        response = goto!(page, "https://example.com"; wait_until = "load")
+        @test response !== nothing && status(response) == 200
+        expect(page; to_have_title = "Example Domain")
+    finally
+        close!(browser)
+    end
+end
 ```
 
 `wait_until` selects when `goto!` returns:
