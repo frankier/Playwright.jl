@@ -19,9 +19,9 @@ nothing.
 
 ## Wait driver-side
 
-Everything in this package waits **in the browser**, not in Julia. The
-condition is re-checked by the driver, so an element that arrives late is
-picked up the moment it arrives rather than at the next poll.
+The action, assertion and explicit DOM waits below run in the driver, not in
+Julia. The driver re-checks their conditions as the page changes. `retry_until`
+is the exception: it polls from Julia.
 
 | Call | Waits for |
 |---|---|
@@ -31,9 +31,75 @@ picked up the moment it arrives rather than at the next poll.
 | [`retry_until`](@ref) | anything else, polled from Julia |
 | [`click!`](@ref) and other locator actions | action-specific prerequisites; see [Input actions](@ref) |
 
-Actions waiting on their own is the part that is easy to miss: `click!` already
-waits for its target to be attached, visible, stable, able to receive events
-and not disabled. Most of the time no explicit wait is needed at all.
+Actions waiting on their own is the part that is easy to miss. For example, a
+button that appears or becomes enabled later needs no wait before `click!`:
+
+```julia
+click!(locator(page, "#submit"))  # retries until the button can be clicked
+```
+
+The click resolves its locator again as needed, then waits for the relevant
+checks. It does **not** wait for the page's asynchronous response to the click;
+use [`expect`](@ref) for that:
+
+```julia
+click!(locator(page, "#submit"))
+expect(locator(page, "#status"); to_have_text = "Saved")
+```
+
+### What actionable means
+
+The driver applies only the checks needed for the requested action:
+
+| Check | Meaning and example |
+|---|---|
+| Attached | The selector resolves to an element still in the DOM. A locator is lazy; constructing one does not wait. |
+| Visible | The element has a non-empty box and is not `visibility: hidden`. Visibility alone does not mean it can be clicked. |
+| Stable | Its box has stopped moving across animation frames, so a pointer action will not chase an animation. |
+| Receives events | The action point hits the element, rather than an overlay covering it. |
+| Enabled | The control is not disabled. A disabled button can become enabled later. |
+| Editable | A field can accept input: it is enabled and not read-only. |
+
+[`click!`](@ref), [`dblclick!`](@ref), [`check!`](@ref),
+[`uncheck!`](@ref) and [`tap!`](@ref) need a visible, stable target that
+receives events and is enabled. [`hover!`](@ref) needs visibility, stability
+and event reception, but not enabledness. [`set_value!`](@ref) needs a visible,
+enabled, editable field; it does not need to receive pointer events.
+[`select_option!`](@ref) waits for a visible, enabled select. Keyboard actions
+such as [`press!`](@ref) resolve and focus an element, but do not require the
+pointer checks. [`dispatch_event!`](@ref) sends a synthetic event without
+pointer actionability checks. Page-coordinate [`mouse_click!`](@ref) has no
+locator to check.
+
+An overlay covering a button illustrates the distinction:
+
+```julia
+click!(locator(page, "#submit"))  # waits for the overlay to stop intercepting it
+```
+
+Waiting only for `#submit` to become visible would not solve this: it can be
+visible *under* the overlay. If the overlay never leaves, the click times out;
+inspect the call log in [Errors and timeouts](@ref).
+
+Strict locators (the default) must resolve to one element. If a selector
+matches several, choose a more specific selector or use [`nth`](@ref); waiting
+longer will not make an ambiguous action valid. See [Locators](@ref) for
+strictness and [Errors and timeouts](@ref) for timeout failures.
+
+### Reads and assertions
+
+[`count`](@ref) returns a snapshot immediately. Reads such as
+[`text_content`](@ref) may wait for a matching element, but read its value
+once; they do not retry until the value is what you wanted. For asynchronous
+results, use a retrying assertion:
+
+```julia
+expect(locator(page, "#status"); to_have_text = "Saved")
+expect(locator(page, ".result"; strict = false); to_have_count = 3)
+```
+
+`expect` retries its condition and raises [`AssertionFailure`](@ref) if it
+never holds. See [Assertions](@ref) for the supported matchers.
 
 ## `wait_for_selector`
 
@@ -43,8 +109,9 @@ wait_for_selector(page, "#spinner"; state = :hidden)
 ```
 
 `state` is one of `:attached`, `:detached`, `:visible` or `:hidden`. The
-default is `:visible`, which is what you want the great majority of the time —
-an element present in the DOM but not shown is not something a user can use.
+driver's default is `:attached`; pass `state = :visible` when the element must
+also be shown. This waits for a DOM state, not for enabledness, stability or
+an unobstructed click target. Use an action when those checks are what you need.
 
 It returns an [`ElementHandle`](@ref) (or `nothing` for `:detached` and
 `:hidden`), and raises [`TimeoutError`](@ref) if the state never arrives. It

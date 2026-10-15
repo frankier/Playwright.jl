@@ -139,7 +139,8 @@ dispatch_event!(slider, "input")            # let the listeners react
 ```
 
 The other element actions are one call each. Their actionability checks depend
-on the action; see [Input actions](@ref) and the individual API entries:
+on the action; see [Waiting](@ref), [Input actions](@ref) and the individual API
+entries:
 
 | Call | Does |
 |---|---|
