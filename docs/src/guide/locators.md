@@ -189,6 +189,8 @@ lives in.
 
 To inspect the frame tree rather than act inside it, use [`frames`](@ref),
 [`parent_frame`](@ref), [`url`](@ref) and [`frame_name`](@ref).
+The [Frames and iframes](@ref) guide works through a nested iframe, evaluation
+and frame-tree inspection.
 
 ## Handles, and when to want one
 
