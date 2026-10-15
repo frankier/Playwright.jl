@@ -138,8 +138,8 @@ evaluate(slider, "(el, v) => el.value = v", 7)
 dispatch_event!(slider, "input")            # let the listeners react
 ```
 
-The rest of the element actions are one call each, and each waits for the same
-actionability as [`click!`](@ref):
+The other element actions are one call each. Their actionability checks depend
+on the action; see [Input actions](@ref) and the individual API entries:
 
 | Call | Does |
 |---|---|
@@ -171,6 +171,8 @@ none of it. [`mouse_click!`](@ref) and [`mouse_wheel!`](@ref) are the one-shot
 forms, and [`keyboard_press!`](@ref), [`keyboard_type!`](@ref),
 [`keyboard_down!`](@ref) and [`keyboard_up!`](@ref) are the keyboard
 counterparts, aimed at whatever has focus.
+
+For form, shortcut, mouse and touch workflows, see [Input actions](@ref).
 
 ## Locators inside iframes
 

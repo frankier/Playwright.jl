@@ -75,9 +75,9 @@ It is not registered yet, so install it by URL — see
 | choose an isolated page or shared context | [Browser contexts and isolation](@ref) |
 | work with tabs, popups, or a persistent profile | [Pages and tabs](@ref) |
 | find elements | [Locators](@ref) |
+| fill forms and send keyboard, mouse or touch input | [Input actions](@ref) |
 | stop using `sleep` | [Waiting](@ref) and [Assertions](@ref) |
 | catch popups, console output, page errors | [Events](@ref) |
 | get a screenshot or a trace out of a failing test | [Artifacts](@ref) |
 | know which error means what | [Errors and timeouts](@ref) |
 | look a function up | [API reference](@ref) |
-
