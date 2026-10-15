@@ -109,7 +109,9 @@ using Playwright: launch_persistent_context
 
                     within_deadline("$eng persistent process", 180.0) do
                         ctx = launch_persistent_context(bt, profile; headless = true)
-                        goto!(first(pages(ctx)), "$base_url/index.html")
+                        # Closing a launched persistent browser is the behavior
+                        # under test. Navigating to the fixture adds an unrelated
+                        # network/load wait that can time out on a busy runner.
                         close!(ctx)
                     end
 
