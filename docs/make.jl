@@ -43,6 +43,7 @@ makedocs(;
             "guide/contexts.md",
             "guide/pages.md",
             "guide/locators.md",
+            "guide/navigation.md",
             "guide/waiting.md",
             "guide/assertions.md",
             "guide/events.md",

@@ -4,6 +4,9 @@ Browsers are asynchronous and pages are slow in ways that vary run to run. The
 whole difficulty of browser testing is deciding *when* to look. There are two
 answers, and only one of them works.
 
+For the distinction between a navigation milestone and a ready application,
+see [Navigation and page readiness](@ref).
+
 ```julia
 sleep(2)                                             # hope
 wait_for_selector(page, "#late"; state = :visible)    # know
