@@ -192,6 +192,7 @@ no GPU and no X display. The pinned headless Firefox renders WebGL too. See
 ## Where to go next
 
 - [Locators](@ref) — finding elements
+- [Navigation and page readiness](@ref) — moving between pages and waiting for the app
 - [Waiting](@ref) — and why it is not sleeping
 - [Assertions](@ref) — `expect` and `retry_until`
 - [Events](@ref) — popups, console output, page errors

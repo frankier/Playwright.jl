@@ -41,6 +41,7 @@ makedocs(;
         "Engines" => "engines.md",
         "Guide" => [
             "guide/locators.md",
+            "guide/navigation.md",
             "guide/waiting.md",
             "guide/assertions.md",
             "guide/events.md",
