@@ -73,6 +73,7 @@ It is not registered yet, so install it by URL — see
 |---|---|
 | install it and write a first test | [Getting started](@ref) |
 | choose an isolated page or shared context | [Browser contexts and isolation](@ref) |
+| emulate a device, locale, or network state | [Configuring and checking a browser context](@ref) |
 | work with tabs, popups, or a persistent profile | [Pages and tabs](@ref) |
 | find elements | [Locators](@ref) |
 | fill forms and send keyboard, mouse or touch input | [Input actions](@ref) |

@@ -82,4 +82,6 @@ open. [`contexts(browser)`](@ref contexts) lists the currently open contexts and
 can help spot a leak.
 
 See [Pages and tabs](@ref) for multiple pages and popups in one context, and
-[Artifacts](@ref) for the `with_page` screenshot and trace options.
+[Artifacts](@ref) for the `with_page` screenshot and trace options. To combine
+viewport, locale, permissions and network settings, see
+[Configuring and checking a browser context](@ref).
