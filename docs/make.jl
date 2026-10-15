@@ -41,6 +41,7 @@ makedocs(;
         "Engines" => "engines.md",
         "Guide" => [
             "guide/contexts.md",
+            "guide/context-configuration.md",
             "guide/pages.md",
             "guide/locators.md",
             "guide/navigation.md",

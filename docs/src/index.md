@@ -73,6 +73,7 @@ It is not registered yet, so install it by URL — see
 |---|---|
 | install it and write a first test | [Getting started](@ref) |
 | choose an isolated page or shared context | [Browser contexts and isolation](@ref) |
+| emulate a device, locale, or network state | [Configuring and checking a browser context](@ref) |
 | work with tabs, popups, or a persistent profile | [Pages and tabs](@ref) |
 | find elements | [Locators](@ref) |
 | stop using `sleep` | [Waiting](@ref) and [Assertions](@ref) |
@@ -80,4 +81,3 @@ It is not registered yet, so install it by URL — see
 | get a screenshot or a trace out of a failing test | [Artifacts](@ref) |
 | know which error means what | [Errors and timeouts](@ref) |
 | look a function up | [API reference](@ref) |
-
