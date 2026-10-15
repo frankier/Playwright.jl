@@ -45,6 +45,8 @@ makedocs(;
             "guide/pages.md",
             "guide/locators.md",
             "guide/frames.md",
+            "guide/evaluation.md",
+            "guide/handles.md",
             "guide/navigation.md",
             "guide/input.md",
             "guide/waiting.md",
