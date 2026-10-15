@@ -44,6 +44,7 @@ makedocs(;
             "guide/context-configuration.md",
             "guide/pages.md",
             "guide/locators.md",
+            "guide/frames.md",
             "guide/navigation.md",
             "guide/input.md",
             "guide/waiting.md",
