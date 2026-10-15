@@ -131,6 +131,9 @@ frame_name
 
 ## Evaluating JavaScript
 
+For worked examples, see [Evaluating JavaScript](@ref evaluation-guide) and
+[JavaScript handles](@ref).
+
 ```@docs
 evaluate
 evaluate_all

@@ -213,7 +213,8 @@ end
 ```
 
 [`element_handle`](@ref) does not wait. [`wait_for_selector`](@ref) is the form
-that does. See [Waiting](@ref).
+that does. See [Waiting](@ref), [Evaluating JavaScript](@ref evaluation-guide) and
+[JavaScript handles](@ref) for more examples and handle lifetime guidance.
 
 ## Reading a locator back
 
