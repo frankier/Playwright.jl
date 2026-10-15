@@ -16,6 +16,7 @@ end
 
 [`expect_event`](@ref) subscribes, runs the block, then waits for the event. It
 cannot miss anything the block does.
+See [Pages and tabs](@ref) for popup ownership and context cleanup.
 
 ## What you can subscribe to
 

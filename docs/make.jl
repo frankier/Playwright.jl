@@ -40,6 +40,8 @@ makedocs(;
         "Getting started" => "getting-started.md",
         "Engines" => "engines.md",
         "Guide" => [
+            "guide/contexts.md",
+            "guide/pages.md",
             "guide/locators.md",
             "guide/waiting.md",
             "guide/assertions.md",

@@ -73,6 +73,10 @@ To collect a screenshot and a trace when a test fails, use the
 [`with_page`](@ref) fixture instead of the `try`/`finally` above. See
 [Artifacts](@ref).
 
+This example's `new_page(browser)` creates an isolated context for the page.
+For several tabs or a profile you control, see [Browser contexts and isolation](@ref)
+and [Pages and tabs](@ref).
+
 ## Engines and browsers
 
 There are five: `chromium`, `firefox`, `webkit`, `chrome` and `msedge`. The
@@ -191,6 +195,8 @@ no GPU and no X display. The pinned headless Firefox renders WebGL too. See
 
 ## Where to go next
 
+- [Browser contexts and isolation](@ref) — choose a page or context lifetime
+- [Pages and tabs](@ref) — multiple tabs, popups, and persistent profiles
 - [Locators](@ref) — finding elements
 - [Waiting](@ref) — and why it is not sleeping
 - [Assertions](@ref) — `expect` and `retry_until`

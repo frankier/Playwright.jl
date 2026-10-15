@@ -72,6 +72,8 @@ It is not registered yet, so install it by URL — see
 | If you want to | Read |
 |---|---|
 | install it and write a first test | [Getting started](@ref) |
+| choose an isolated page or shared context | [Browser contexts and isolation](@ref) |
+| work with tabs, popups, or a persistent profile | [Pages and tabs](@ref) |
 | find elements | [Locators](@ref) |
 | stop using `sleep` | [Waiting](@ref) and [Assertions](@ref) |
 | catch popups, console output, page errors | [Events](@ref) |
