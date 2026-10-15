@@ -148,8 +148,13 @@ subscription_count(conn) = sum(length, values(conn.subscriptions); init = 0)
     @testset "dispatch to a closed subscription is a no-op, not an error" begin
         f = event_fixture()
         sub = Playwright.subscribe(f.page, "console")
+        barrier = Playwright.subscribe(f.page2, "console")
         close(sub)
         send_event(f.fake, "page@1", "console", Dict("text" => "after close"))
+        # Wait until the reader has handled that event before attaching the
+        # next listener. Otherwise the queued event can reach `fresh` too.
+        send_event(f.fake, "page@2", "console", Dict("text" => "barrier"))
+        @test take_within!(barrier.channel, "the dispatch barrier")["text"] == "barrier"
         # Still dispatching afterwards: a fresh subscription receives.
         fresh = Playwright.subscribe(f.page, "console")
         send_event(f.fake, "page@1", "console", Dict("text" => "fresh"))
