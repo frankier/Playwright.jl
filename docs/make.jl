@@ -44,6 +44,7 @@ makedocs(;
             "guide/pages.md",
             "guide/locators.md",
             "guide/navigation.md",
+            "guide/input.md",
             "guide/waiting.md",
             "guide/assertions.md",
             "guide/events.md",
