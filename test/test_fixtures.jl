@@ -352,7 +352,10 @@ end
                     # Alive: they report what the page really produced.
                     @test js_wait(page, "window.__threwAt !== undefined")
                     @test !isempty(console_messages(page))
-                    @test !isempty(page_errors(page))
+                    # The JS marker is set before the throw. Firefox can answer
+                    # that evaluation before the driver records the page error,
+                    # so wait for the buffer this reader actually observes.
+                    @test timedwait(() -> !isempty(page_errors(page)), 5.0) === :ok
 
                     close!(ctx)
 
@@ -877,10 +880,13 @@ end
                     # fixture has to produce both.
                     @test js_wait(page, "window.__threwAt !== undefined")
                     @test !isempty(console_messages(page))
-                    @test any(
-                        e -> occursin("late-title fixture", e.message),
-                        page_errors(page),
-                    )
+                    @test timedwait(
+                        () -> any(
+                            e -> occursin("late-title fixture", e.message),
+                            page_errors(page),
+                        ),
+                        5.0,
+                    ) === :ok
 
                     # Enough rendered content that a screenshot and a PDF are
                     # more than a blank sheet.
