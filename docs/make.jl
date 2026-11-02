@@ -24,7 +24,7 @@ makedocs(;
     doctest = true,
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
-        canonical = "https://frankier.github.io/playwright-julia",
+        canonical = "https://frankier.github.io/Playwright.jl",
         assets = String[],
         # api.md is one page covering the whole export list, and it is over
         # Documenter's default warning size. That is the page working as
@@ -72,7 +72,7 @@ makedocs(;
 # and warns about it, which would make every local build noisy.
 if get(ENV, "CI", "false") == "true"
     deploydocs(;
-        repo = "github.com/frankier/playwright-julia",
+        repo = "github.com/frankier/Playwright.jl",
         devbranch = "main",
         push_preview = false,
     )

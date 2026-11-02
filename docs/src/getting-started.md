@@ -4,10 +4,8 @@
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/frankier/playwright-julia")
+Pkg.add("Playwright")
 ```
-
-Playwright.jl is not registered yet, so it installs from the repository.
 
 ## The first run downloads things
 
