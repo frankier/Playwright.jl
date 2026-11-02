@@ -107,10 +107,8 @@ const MATCHERS = Dict{Symbol,Any}(
 # Document-level matchers. Same protocol command, same table shape — the
 # only difference is what they run against.
 #
-# The selector for these is the **empty string**, which is the one thing here
-# that could not be guessed. On both engines `":root"` and `"html"` both fail,
-# and they fail with the same generic "Expect failed" a real mismatch gives.
-# Hence a closed table here too.
+# Playwright 1.64 distinguishes document assertions by an absent selector.
+# An empty string is parsed as a CSS selector and rejected by the driver.
 const DOCUMENT_MATCHERS = Dict{Symbol,Any}(
     :to_have_title => (
         expression = "to.have.title",
@@ -122,7 +120,7 @@ const DOCUMENT_MATCHERS = Dict{Symbol,Any}(
     ),
 )
 
-const DOCUMENT_SELECTOR = ""
+const DOCUMENT_SELECTOR = nothing
 
 matcher_names(table) = join(sort!([":$k" for k in keys(table)]), ", ")
 
@@ -400,12 +398,12 @@ function expect(frame::Frame; timeout::MaybeTimeout = nothing, matchers...)
 end
 
 # Every assertion is one `frame.expect` against a frame and a selector — an
-# element matcher supplies the locator's, a document matcher the empty string.
+# element matcher supplies the locator's, a document matcher omits it.
 # `described` is what the failure message calls the target, since `locator("")`
 # would read like a bug in the package rather than a page-level assertion.
 function run_expect(
     frame::Frame,
-    selector::AbstractString,
+    selector::Union{AbstractString,Nothing},
     described::AbstractString,
     name::Symbol,
     spec,

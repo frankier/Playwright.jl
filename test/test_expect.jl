@@ -386,10 +386,8 @@ end
 
 # --- Document-level assertions ---------------------------------------------
 #
-# The selector and expression strings are not guesses. Probed against the live
-# 1.61.1 driver on both engines: the selector for a
-# document-level assertion is the **empty string**, and ":root" or "html" fail
-# with the same generic ExpectFailure a real mismatch produces.
+# Since 1.64 document-level assertions omit the selector; an empty string is
+# parsed as CSS and rejected. Locator assertions still include their selector.
 
 @testset "expect on a document" begin
     @testset "to_have_title goes out with the probed selector and expression" begin
@@ -401,9 +399,8 @@ end
         @test sent["guid"] == "frame@1"
         @test sent["method"] == "expect"
         @test sent["params"]["expression"] == "to.have.title"
-        # ...with the empty selector. This is the measured value, and the one
-        # thing here that cannot be guessed from the yml.
-        @test sent["params"]["selector"] == ""
+        # Document assertions must omit selector rather than sending "".
+        @test !haskey(sent["params"], "selector")
         @test sent["params"]["expectedText"] == [Dict("string" => "Dashboard")]
         @test sent["params"]["isNot"] == false
         @test sent["metadata"]["timeout"] == 2_000
@@ -417,7 +414,7 @@ end
             () -> expect(f.page; to_have_url = "https://example.com/x"),
         )
         @test sent["params"]["expression"] == "to.have.url"
-        @test sent["params"]["selector"] == ""
+        @test !haskey(sent["params"], "selector")
         @test sent["params"]["expectedText"] == [Dict("string" => "https://example.com/x")]
         shutdown!(f.fake)
     end
@@ -438,7 +435,7 @@ end
         f = timeout_fixture()
         sent = waiting_request(f.fake, () -> expect(f.childframe; to_have_title = "child"))
         @test sent["guid"] == "childframe@1"
-        @test sent["params"]["selector"] == ""
+        @test !haskey(sent["params"], "selector")
         shutdown!(f.fake)
     end
 
