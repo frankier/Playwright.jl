@@ -354,7 +354,6 @@ sync_autoreplied(fake::FakeDriver) =
         params = msg["params"]
         @test sort(collect(keys(params))) == sort([
             "headless",
-            "timeout",
             "chromiumSandbox",
             "args",
             "env",
@@ -365,6 +364,7 @@ sync_autoreplied(fake::FakeDriver) =
             "downloadsPath",
             "proxy",
         ])
+        @test msg["metadata"]["timeout"] == 180_000
         @test params["headless"] === false
         @test params["chromiumSandbox"] === false
         @test params["args"] == ["--disable-dev-shm-usage"]
