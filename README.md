@@ -1,7 +1,7 @@
 # Playwright.jl
 
-[![CI](https://github.com/frankier/playwright-julia/actions/workflows/CI.yml/badge.svg)](https://github.com/frankier/playwright-julia/actions/workflows/CI.yml)
-[![Docs](https://github.com/frankier/playwright-julia/actions/workflows/docs.yml/badge.svg)](https://frankier.github.io/playwright-julia/dev/)
+[![CI](https://github.com/frankier/Playwright.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/frankier/Playwright.jl/actions/workflows/CI.yml)
+[![Docs](https://github.com/frankier/Playwright.jl/actions/workflows/docs.yml/badge.svg)](https://frankier.github.io/Playwright.jl/dev/)
 
 Drive real browsers from Julia through the official
 [Playwright](https://playwright.dev) automation engine — end-to-end testing,
@@ -12,7 +12,7 @@ CDP. The same architecture as `playwright-python`: a pinned Playwright driver
 🤖 Yes, this is going to be mostly a robot code and text zone
 🤖 [AI level: 7/8](https://www.visidata.org/blog/2026/ai/#level-7%3A-human-specced%2C-bots-coded) 
 
-**📖 [Documentation](https://frankier.github.io/playwright-julia/dev/)** — the
+**📖 [Documentation](https://frankier.github.io/Playwright.jl/dev/)** — the
 guide, the examples and the full API reference live there.
 
 ## Quick start
@@ -21,10 +21,8 @@ guide, the examples and the full API reference live there.
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/frankier/playwright-julia")
+Pkg.add("Playwright")
 ```
-
-Not registered yet.
 
 ### Quick example
 
@@ -59,7 +57,7 @@ $ julia bin/install.jl chromium     # just the one you need
 `bin/install.jl` runs standalone, activating the checkout itself if the active
 environment cannot load the package — which is the case a project carrying
 Playwright.jl as a *test* dependency hits. See
-[Getting started](https://frankier.github.io/playwright-julia/dev/getting-started/)
+[Getting started](https://frankier.github.io/Playwright.jl/dev/getting-started/)
 for caching browsers in GitHub Actions.
 
 ### Avoid sleep
@@ -89,12 +87,12 @@ Five engines on three platforms, through a synchronous API.
 `chrome` and `msedge` are **channels, not engines**: Playwright launches Google
 Chrome and Microsoft Edge as `chromium` with a `channel`, using the browser
 already installed on the machine rather than downloading one.
-[`engine(pw, name)`](https://frankier.github.io/playwright-julia/dev/engines/)
+[`engine(pw, name)`](https://frankier.github.io/Playwright.jl/dev/engines/)
 is where that mapping lives, so code with an engine name in a variable does not
 have to carry its own copy.
 
 WebKit on Windows is not supported — that is a decision, not an omission; see
-[the engines page](https://frankier.github.io/playwright-julia/dev/engines/) for
+[the engines page](https://frankier.github.io/Playwright.jl/dev/engines/) for
 what else differs between the five, and why.
 
 What the package covers:
