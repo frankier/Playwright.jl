@@ -328,7 +328,8 @@ sync_autoreplied(fake::FakeDriver) =
         task = @async launch(bt)
         msg = next_message(fake)
         @test msg["method"] == "launch"
-        @test sort(collect(keys(msg["params"]))) == ["headless", "timeout"]
+        @test sort(collect(keys(msg["params"]))) == ["headless"]
+        @test msg["metadata"]["timeout"] == 180_000
         send_create(fake, "browserType@1", "Browser", "browser@1")
         reply_ok(fake, msg["id"], Dict("browser" => Dict("guid" => "browser@1")))
         @test await(task) isa Playwright.Browser
@@ -514,8 +515,9 @@ sync_autoreplied(fake::FakeDriver) =
         @test params["viewport"] == Dict("width" => 800, "height" => 600)
         @test params["locale"] == "de-DE"
         # launch's defaults come along, because a persistent context is still a
-        # launch and the protocol requires the timeout.
-        @test haskey(params, "timeout")
+        # launch and its metadata carries the timeout.
+        @test !haskey(params, "timeout")
+        @test msg["metadata"]["timeout"] == 180_000
         # ...and still no explicit nulls.
         @test !any(v -> v === nothing, values(params))
 

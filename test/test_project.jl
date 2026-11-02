@@ -3,8 +3,7 @@
 #
 # These are the two claims that only bite at registration time, long after the
 # mistake was made: a dependency with no compat bound, and a missing licence.
-# `[deps]` should stay untouched as the package grows, so the
-# dependency set is pinned here by name.
+# The runtime dependency set is checked here by name.
 
 using TOML
 
@@ -23,12 +22,12 @@ using TOML
         @test compat["julia"] == "1.10"
     end
 
-    @testset "[deps] is unchanged" begin
-        # No runtime dependency beyond the stdlib: examples and docs live in
-        # their own projects. If this list needs editing, that is a design
-        # boundary being crossed, not a stale test.
+    @testset "runtime dependencies" begin
         @test sort(collect(keys(project["deps"]))) ==
-              ["Base64", "Dates", "Downloads", "JSON", "Scratch", "p7zip_jll"]
+              ["Base64", "Dates", "JSON", "NodeJS_24_jll", "playwright_core_jll"]
+        # The generated protocol must match the driver, including minor releases.
+        @test project["compat"]["playwright_core_jll"] ==
+              "=" * Playwright.PLAYWRIGHT_VERSION
     end
 
     @testset "LICENSE is MIT" begin

@@ -1,12 +1,11 @@
 # The package's own checks, in three tiers that get more expensive and less
 # hermetic as you go down (D6):
 #
-#   test     3 OS x 2 Julia. No Node, no browser, no network beyond the
-#            registry. The cheapest signal on every platform, and the one that
+#   test     3 OS x 2 Julia. No browser or system Node required.
+#            The cheapest signal on every platform, and the one that
 #            tells a portability bug apart from a browser bug.
-#   driver   3 OS. Assembles the driver bundle and asks it its version. Two
-#            minutes, no browser — the rung that separates "the bundle is
-#            wrong" from "the browser is wrong".
+#   driver   3 OS. Runs the artifact-provided driver and asks it its version,
+#            without launching a browser.
 #   smoke    14 jobs, the platform x engine grid minus WebKit on Windows (D12).
 #            Real browsers against a fixture server served in-process.
 #   examples 2 jobs, Linux only, on the bundled engines. Slow by nature and
@@ -31,14 +30,13 @@ concurrency:
 jobs:
   test:
     # The hermetic tier, and the first gate on every platform (D6). It needs no
-    # Node, no browser and no network beyond the registry, which makes it the
-    # cheapest possible Windows and macOS signal -- a couple of minutes against
+    # system Node or browser, which makes it the cheapest Windows and macOS signal -- a couple of minutes against
     # a smoke job's fifteen.
     #
     # It also partitions Part B's failures into two kinds that want different
     # fixes: a hermetic failure on Windows is *this package's* portability bug
     # (a path, a line ending, a string comparison), while a smoke failure is the
-    # driver bundle or the browser. Finding the first kind under the second
+    # driver artifacts or the browser. Finding the first kind under the second
     # kind's feedback loop is how a week disappears.
     #
     # No engine axis here, deliberately: this job launches nothing.
@@ -62,16 +60,8 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
 
   driver:
-    # The cheap rung between hermetic and smoke (D6): assemble the driver
-    # bundle and ask it its version. Two minutes against a smoke job's twenty,
-    # with no browser involved.
-    #
-    # It exists because "the driver bundle is wrong" and "the browser is wrong"
-    # are different failures with different fixes, and finding the first under
-    # the second's feedback loop is how a week disappears. On Windows it proves
-    # the member-limited extraction gets node.exe out of the .zip (D9); on
-    # macOS it is the first execution of node_platform's arm64 branch.
-    name: Driver assembly (${{ matrix.os }})
+    # Exercise the artifact-provided Node runtime and Playwright CLI on each OS.
+    name: Driver artifacts (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -85,16 +75,8 @@ jobs:
           version: "1.10"
       - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
-      - name: Assemble the driver and run it
-        # No browsers: install_driver only. `--version` is the cheapest
-        # question that proves the assembled node binary can run the assembled
-        # playwright-core.
-        run: |
-          julia --project=. -e '
-            using Playwright
-            dir = Playwright.install_driver()
-            @info "assembled" dir contents = sort(readdir(dir))
-            run(Playwright.driver_cmd("--version"; dir))'
+      - name: Run the artifact-provided driver
+        run: julia --project=. -e 'using Playwright; run(Playwright.driver_cmd("--version"))'
 
   smoke:
     # The job that makes CI mean something for this package: real browsers
@@ -141,10 +123,8 @@ jobs:
           julia -e '
             src = read("src/driver.jl", String)
             pw = match(r"const PLAYWRIGHT_VERSION = \"([^\"]+)\"", src)[1]
-            node = match(r"const NODE_VERSION = \"([^\"]+)\"", src)[1]
             open(ENV["GITHUB_OUTPUT"], "a") do io
                 println(io, "playwright=", pw)
-                println(io, "node=", node)
             end'
 
       - name: Restore browsers
@@ -163,12 +143,9 @@ jobs:
         if: matrix.engine != 'chrome' && matrix.engine != 'msedge'
         uses: actions/cache@v6
         with:
-          # Browsers only. The driver bundle lands in a Scratch.jl directory,
-          # which julia-actions/cache above already covers
-          # (cache-scratchspaces defaults to true) — caching the same path from
-          # two actions would just race them against each other.
+          # Driver artifacts are covered by julia-actions/cache above.
           path: ${{ github.workspace }}/.playwright
-          key: playwright-${{ runner.os }}-${{ matrix.engine }}-pw${{ steps.pins.outputs.playwright }}-node${{ steps.pins.outputs.node }}
+          key: playwright-${{ runner.os }}-${{ matrix.engine }}-pw${{ steps.pins.outputs.playwright }}
 
       # Before the installs, not after: bin/install.jl falls back to
       # activating and instantiating the checkout when Playwright is not in the
@@ -208,8 +185,8 @@ jobs:
         #     never reaches its activate-and-instantiate fallback. Nothing
         #     should run Pkg as root.
         #
-        # The chown is the belt to that braces: the driver lives in a Scratch.jl
-        # directory inside the depot, and anything root touched there has to go
+        # The chown is the belt to that braces: the driver artifacts live
+        # inside the depot, and anything root touched there has to go
         # back to the runner before the suite runs.
         if: matrix.os == 'ubuntu-latest' && matrix.engine == 'webkit'
         run: |
@@ -251,10 +228,8 @@ jobs:
           julia -e '
             src = read("src/driver.jl", String)
             pw = match(r"const PLAYWRIGHT_VERSION = \"([^\"]+)\"", src)[1]
-            node = match(r"const NODE_VERSION = \"([^\"]+)\"", src)[1]
             open(ENV["GITHUB_OUTPUT"], "a") do io
                 println(io, "playwright=", pw)
-                println(io, "node=", node)
             end'
 
       - name: Restore browsers
@@ -264,7 +239,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.playwright
-          key: playwright-${{ runner.os }}-pw${{ steps.pins.outputs.playwright }}-node${{ steps.pins.outputs.node }}
+          key: playwright-${{ runner.os }}-pw${{ steps.pins.outputs.playwright }}
 
       - name: Install driver and browsers
         if: steps.browsers.outputs.cache-hit != 'true'
@@ -281,8 +256,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb
 
       - name: Instantiate the examples environment
-        # No --update: the committed Manifest is the point.
-        run: julia --project=examples -e 'using Pkg; Pkg.instantiate()'
+        # Resolve the checkout's changed dependency graph while preserving the
+        # pinned example stack. The unpublished JLL cannot yet be locked here.
+        run: julia --project=examples -e 'using Pkg; Pkg.resolve(); Pkg.instantiate()'
 
       - name: Run the examples
         # Firefox runs headed under xvfb so its WebGL stack works; chromium

@@ -210,8 +210,8 @@ end
 
         @test sent[1]["method"] == "tracingStart"
         @test sent[1]["guid"] == "tracing@1"
-        @test sent[1]["params"]["screenshots"] == true
-        @test sent[1]["params"]["snapshots"] == true
+        @test sent[1]["params"]["screencast"] == true
+        @test sent[1]["params"]["snapshotDom"] == true
         @test sent[2]["method"] == "tracingStartChunk"
         shutdown!(f.fake)
     end

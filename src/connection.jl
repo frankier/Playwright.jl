@@ -144,7 +144,8 @@ function send_message(
     conn::Connection,
     guid::AbstractString,
     method::AbstractString,
-    params::AbstractDict,
+    params::AbstractDict;
+    timeout::Union{Real,Nothing} = nothing,
 )
     reply = Channel{Any}(1)
     id = lock(conn.lock) do
@@ -158,7 +159,9 @@ function send_message(
         "guid" => guid,
         "method" => method,
         "params" => params,
-        "metadata" => Dict{String,Any}(),
+        "metadata" =>
+            timeout === nothing ? Dict{String,Any}() :
+            Dict{String,Any}("timeout" => timeout),
     )
     try
         send(conn.transport, msg)
@@ -174,8 +177,8 @@ function send_message(
     return value
 end
 
-send_message(obj::ChannelOwner, method::AbstractString, params::AbstractDict) =
-    send_message(obj.connection, obj.guid, method, params)
+send_message(obj::ChannelOwner, method::AbstractString, params::AbstractDict; kwargs...) =
+    send_message(obj.connection, obj.guid, method, params; kwargs...)
 
 function dispatch(conn::Connection, msg::AbstractDict)
     if haskey(msg, "id")

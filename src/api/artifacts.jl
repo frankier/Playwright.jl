@@ -142,7 +142,7 @@ nothing to archive.
     it. Upstream clients embed calling source files by passing `includeSources`
     to `localUtils.zip`, which they can do because they assemble the zip
     themselves. This package lets the driver assemble it, through
-    `tracingStopChunk(mode="archive")`, and the 1.61.1 `tracingStart` protocol
+    `tracingStopChunk(mode="archive")`, and the `tracingStart` protocol
     carries no `sources` flag.
 
     The keyword is not in the signature at all, so passing it raises a
@@ -156,7 +156,7 @@ function start_tracing!(
     title::Union{AbstractString,Nothing} = nothing,
 )
     tracing = tracing_channel(ctx)
-    _tracing_tracing_start(tracing; screenshots, snapshots, name)
+    _tracing_tracing_start(tracing; screencast = screenshots, snapshotDom = snapshots, name)
     _tracing_tracing_start_chunk(tracing; name, title)
     return nothing
 end

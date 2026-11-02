@@ -247,6 +247,10 @@ end
 
 function emit_command(io, iface, cmd_name, cmd, entries, sources, unmapped)
     params = resolve_parameters(get(cmd, "parameters", nothing), entries)
+    # Since Playwright 1.64 timeouts belong to Metadata, not command params.
+    # Keep the channel keyword used by the handwritten API and send it there.
+    metadata_timeout = !haskey(params, "timeout")
+    metadata_timeout && (params["timeout"] = "float?")
     typed = [
         (name = n, spec = map_type(params[n], entries, unmapped)) for
         n in sort(collect(keys(params)))
@@ -284,17 +288,19 @@ function emit_command(io, iface, cmd_name, cmd, entries, sources, unmapped)
         println(io, "_params[\"$(p.name)\"] = to_wire($(safe_ident(p.name)))")
     end
     for p in optional
+        metadata_timeout && p.name == "timeout" && continue
         println(
             io,
             "$(safe_ident(p.name)) === nothing || (_params[\"$(p.name)\"] = to_wire($(safe_ident(p.name))))",
         )
     end
 
+    timeout_kw = metadata_timeout ? "; timeout" : ""
     if isempty(ret_names)
-        println(io, "send_message(_obj, \"$cmd_name\", _params)")
+        println(io, "send_message(_obj, \"$cmd_name\", _params$timeout_kw)")
         println(io, "return nothing")
     else
-        println(io, "_result = send_message(_obj, \"$cmd_name\", _params)")
+        println(io, "_result = send_message(_obj, \"$cmd_name\", _params$timeout_kw)")
         exprs = [
             (name = n, expr = return_expr(n, map_type(returns[n], entries, unmapped)))
             for n in ret_names

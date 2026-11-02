@@ -4,13 +4,14 @@
 
 `spec/` is a verbatim copy of `packages/protocol/spec` from
 [microsoft/playwright](https://github.com/microsoft/playwright) at tag
-`v1.61.1`, the version pinned by `PLAYWRIGHT_VERSION` in `src/driver.jl`.
+`v1.64.1`, the version pinned by `PLAYWRIGHT_VERSION` in `src/driver.jl`.
 It is the input to `gen/generate.jl`, which emits
 `src/generated/channels.jl`.
 
-These files are vendored rather than fetched on demand, for two reasons. Builds,
-tests and CI then depend on no network, and a protocol change appears as a diff.
-The files are Microsoft's, licensed Apache 2.0 — see `LICENSE-PLAYWRIGHT`.
+It is vendored rather than fetched on demand so that builds, tests and CI
+never depend on GitHub, and so protocol changes show up as a reviewable
+diff. These files are Microsoft's, licensed Apache 2.0 — see
+`LICENSE-PLAYWRIGHT`.
 
 ## Refreshing
 
@@ -23,4 +24,4 @@ julia --project=gen gen/generate.jl     # regenerate src/generated/channels.jl
 
 ## Contents
 
-1.61.1 (19 files): android.yml, api.yml, artifact.yml, browser.yml, browserContext.yml, browserType.yml, core.yml, electron.yml, frame.yml, handles.yml, localUtils.yml, mixins.yml, network.yml, page.yml, playwright.yml, serialized.yml, structs.yml, tracing.yml, worker.yml
+1.64.1 (19 files): android.yml, api.yml, artifact.yml, browser.yml, browserContext.yml, browserType.yml, core.yml, electron.yml, frame.yml, handles.yml, localUtils.yml, mixins.yml, network.yml, page.yml, playwright.yml, serialized.yml, structs.yml, tracing.yml, worker.yml

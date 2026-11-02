@@ -45,9 +45,10 @@ playwright() do pw
 end
 ```
 
-This runs on a clean machine with only Julia installed: the first use
-downloads the Playwright driver and the browser automatically, which takes a
-couple of minutes. To do it ahead of time — strongly recommended in CI:
+This runs on a clean machine with only Julia installed. Julia provides Node.js
+and the Playwright driver through `NodeJS_24_jll` and `playwright_core_jll`
+artifacts. The first launch downloads the browser automatically, which can take
+a couple of minutes. To do it ahead of time — strongly recommended in CI:
 
 ```console
 $ julia bin/install.jl              # driver + Chromium + Firefox
@@ -146,7 +147,7 @@ $ julia --project=. -e 'using Pkg; Pkg.test()'                       # hermetic
 $ PLAYWRIGHT_JL_SMOKE=1 julia --project=. -e 'using Pkg; Pkg.test()' # + real browsers
 ```
 
-The hermetic suite needs no Node.js and no browsers. The smoke suite launches
+The hermetic suite needs no system Node.js and no browsers. The smoke suite launches
 headless browsers against local HTML fixtures served in-process — all five
 engines by default. Narrow it with `PLAYWRIGHT_JL_ENGINE`, which takes one name
 or a comma-separated list:

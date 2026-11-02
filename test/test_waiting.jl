@@ -36,7 +36,7 @@ end
         @test sent["guid"] == "frame@1"          # page-level calls go via the main frame
         @test sent["method"] == "waitForSelector"
         @test sent["params"]["selector"] == "#late"
-        @test sent["params"]["timeout"] == 2_000
+        @test sent["metadata"]["timeout"] == 2_000
         @test sent["params"]["strict"] == true
         # `state` is the driver's business when the caller did not ask for one:
         # sending an explicit default would override a future driver change.
@@ -82,7 +82,7 @@ end
         sent = waiting_request(f.fake, () -> wait_for_selector(loc))
         @test sent["params"]["selector"] == "#late"
         @test sent["params"]["strict"] == false
-        @test sent["params"]["timeout"] == 2_000
+        @test sent["metadata"]["timeout"] == 2_000
         shutdown!(f.fake)
     end
 
@@ -91,7 +91,7 @@ end
         set_default_timeout!(f.context, 2_000)
         sent =
             waiting_request(f.fake, () -> wait_for_selector(f.page, "#late"; timeout = 250))
-        @test sent["params"]["timeout"] == 250
+        @test sent["metadata"]["timeout"] == 250
         shutdown!(f.fake)
     end
 
@@ -107,7 +107,7 @@ end
         @test sent["guid"] == "frame@1"
         @test sent["method"] == "waitForFunction"
         @test sent["params"]["expression"] == "() => window.ready"
-        @test sent["params"]["timeout"] == 2_000
+        @test sent["metadata"]["timeout"] == 2_000
         # No polling asked for means none on the wire — the driver polls on
         # requestAnimationFrame, which is the better default for a DOM check.
         @test !haskey(sent["params"], "pollingInterval")

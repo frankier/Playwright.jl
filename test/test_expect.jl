@@ -153,7 +153,7 @@ expect_failure_reply(fake, id; received = Dict("s" => "Hello"), extra...) = driv
         @test sent["params"]["selector"] == "#title"
         @test sent["params"]["expectedText"] == [Dict("string" => "Hello")]
         @test sent["params"]["isNot"] == false
-        @test sent["params"]["timeout"] == 2_000
+        @test sent["metadata"]["timeout"] == 2_000
         shutdown!(f.fake)
     end
 
@@ -337,7 +337,7 @@ expect_failure_reply(fake, id; received = Dict("s" => "Hello"), extra...) = driv
             f.fake,
             () -> expect(loc; to_have_text = "Hello", timeout = 250),
         )
-        @test sent["params"]["timeout"] == 250
+        @test sent["metadata"]["timeout"] == 250
         shutdown!(f.fake)
     end
 
@@ -406,7 +406,7 @@ end
         @test sent["params"]["selector"] == ""
         @test sent["params"]["expectedText"] == [Dict("string" => "Dashboard")]
         @test sent["params"]["isNot"] == false
-        @test sent["params"]["timeout"] == 2_000
+        @test sent["metadata"]["timeout"] == 2_000
         shutdown!(f.fake)
     end
 

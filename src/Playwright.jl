@@ -20,11 +20,10 @@ end
 module Playwright
 
 using JSON
-using Scratch
-using Downloads
+import NodeJS_24_jll
+import playwright_core_jll
 using Base64
 using Dates
-using p7zip_jll: p7zip
 
 export playwright,
     install,

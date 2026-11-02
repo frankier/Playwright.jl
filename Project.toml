@@ -6,23 +6,21 @@ authors = ["Frankie Robertson <frankier@frankier.name>"]
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
-Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-Scratch = "6c6a2e73-6563-6170-7368-637461726353"
-p7zip_jll = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+NodeJS_24_jll = "30a2228f-09fe-513d-9563-0d10bd40449a"
+playwright_core_jll = "743201c0-3ed6-5364-97fb-8ff70627b7ba"
 
 [compat]
 Base64 = "1"
 Dates = "1"
-Downloads = "1"
 HTTP = "2"
 JSON = "0.21, 1"
-Scratch = "1"
+NodeJS_24_jll = "24.18.0"
 Sockets = "1"
 TOML = "1"
 Test = "1"
 julia = "1.10"
-p7zip_jll = "17.4"
+playwright_core_jll = "=1.64.1"
 
 [extras]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
