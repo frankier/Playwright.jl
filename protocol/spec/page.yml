@@ -42,7 +42,6 @@ Page:
         reason: string?
       flags:
         pause: true
-        potentiallyClosesScope: true
 
     runBeforeUnload:
       title: Run beforeunload
@@ -67,6 +66,12 @@ Page:
 
     emulateMedia:
       title: Emulate media
+      renderParams:
+      - media
+      - colorScheme
+      - reducedMotion
+      - forcedColors
+      - contrast
       parameters:
         media:
           type: enum?
@@ -108,13 +113,13 @@ Page:
       group: configuration
       parameters:
         name: string
+        noGlobal: boolean?
       returns:
         disposable: Disposable
 
     goBack:
       title: Go back
       parameters:
-        timeout: float
         waitUntil: LifecycleEvent?
       returns:
         response: Response?
@@ -126,7 +131,6 @@ Page:
     goForward:
       title: Go forward
       parameters:
-        timeout: float
         waitUntil: LifecycleEvent?
       returns:
         response: Response?
@@ -141,6 +145,7 @@ Page:
 
     registerLocatorHandler:
       title: Register locator handler
+      subtitle: '{selector}'
       parameters:
         selector: string
         noWaitAfter: boolean?
@@ -161,7 +166,6 @@ Page:
     reload:
       title: Reload
       parameters:
-        timeout: float
         waitUntil: LifecycleEvent?
       returns:
         response: Response?
@@ -172,9 +176,9 @@ Page:
 
     expectScreenshot:
       title: Expect screenshot
+      subtitle: '{locator.selector}'
       parameters:
         expected: binary?
-        timeout: float
         isNot: boolean
         locator:
           type: object?
@@ -187,6 +191,11 @@ Page:
         threshold: float?
         fullPage: boolean?
         clip: Rect?
+        type:
+          type: enum?
+          literals:
+          - png
+          - webp
         $mixin: CommonScreenshotOptions
       returns:
         actual: binary?
@@ -205,13 +214,16 @@ Page:
 
     screenshot:
       title: Screenshot
+      renderParams:
+      - type
+      - fullPage
       parameters:
-        timeout: float
         type:
           type: enum?
           literals:
           - png
           - jpeg
+          - webp
         quality: int?
         fullPage: boolean?
         clip: Rect?
@@ -260,6 +272,9 @@ Page:
 
     setViewportSize:
       title: Set viewport size
+      renderParams:
+      - viewportSize.width
+      - viewportSize.height
       parameters:
         viewportSize:
           type: object
@@ -272,6 +287,8 @@ Page:
 
     keyboardDown:
       title: Key down "{key}"
+      renderParams:
+      - key
       parameters:
         key: string
       flags:
@@ -282,6 +299,8 @@ Page:
 
     keyboardUp:
       title: Key up "{key}"
+      renderParams:
+      - key
       parameters:
         key: string
       flags:
@@ -292,6 +311,8 @@ Page:
 
     keyboardInsertText:
       title: Insert "{text}"
+      renderParams:
+      - text
       parameters:
         text: string
       flags:
@@ -302,6 +323,8 @@ Page:
 
     keyboardType:
       title: Type "{text}"
+      renderParams:
+      - text
       parameters:
         text: string
         delay: float?
@@ -313,6 +336,8 @@ Page:
 
     keyboardPress:
       title: Press "{key}"
+      renderParams:
+      - key
       parameters:
         key: string
         delay: float?
@@ -324,6 +349,9 @@ Page:
 
     mouseMove:
       title: Mouse move
+      renderParams:
+      - x
+      - y
       parameters:
         x: float
         y: float
@@ -336,6 +364,9 @@ Page:
 
     mouseDown:
       title: Mouse down
+      renderParams:
+      - button
+      - clickCount
       parameters:
         button:
           type: enum?
@@ -352,6 +383,9 @@ Page:
 
     mouseUp:
       title: Mouse up
+      renderParams:
+      - button
+      - clickCount
       parameters:
         button:
           type: enum?
@@ -368,6 +402,11 @@ Page:
 
     mouseClick:
       title: Click
+      renderParams:
+      - x
+      - y
+      - button
+      - clickCount
       parameters:
         x: float
         y: float
@@ -387,6 +426,9 @@ Page:
 
     mouseWheel:
       title: Mouse wheel
+      renderParams:
+      - deltaX
+      - deltaY
       parameters:
         deltaX: float
         deltaY: float
@@ -398,6 +440,9 @@ Page:
 
     touchscreenTap:
       title: Tap
+      renderParams:
+      - x
+      - y
       parameters:
         x: float
         y: float
@@ -580,10 +625,16 @@ Page:
             width: int
             height: int
         quality: int?
+        fps: int?
         sendFrames: boolean?
         record: boolean?
       returns:
         artifact: Artifact?
+
+    screencastFrameAck:
+      internal: true
+      parameters:
+        frameId: int
 
     screencastStop:
       title: Stop screencast
@@ -597,6 +648,7 @@ Page:
           literals:
           - console
           - dialog
+          - dialogClosed
           - fileChooser
           - request
           - response
@@ -716,6 +768,7 @@ Page:
 
     screencastFrame:
       parameters:
+        frameId: int
         data: binary
         timestamp: float
         viewportWidth: int
@@ -732,3 +785,4 @@ Page:
     worker:
       parameters:
         worker: Worker
+

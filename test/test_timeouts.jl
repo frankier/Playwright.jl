@@ -202,7 +202,7 @@ end
     # `timeout` off the protocol frame that comes out, which is the only place
     # a missed call site shows up.
 
-    "Run `action()` against the fake and return the params of the frame it sent."
+    "Run `action()` against the fake and return its timeout metadata."
     function sent_params(fake, action)
         task = @async action()
         msg = next_message(fake)
@@ -211,7 +211,8 @@ end
             await(task)
         catch
         end
-        return msg["params"]
+        @test !haskey(msg["params"], "timeout")
+        return msg["metadata"]
     end
 
     @testset "locator actions send the inherited timeout, not a hardcoded 30 s" begin

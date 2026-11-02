@@ -9,14 +9,10 @@ Pkg.add("Playwright")
 
 ## The first run downloads things
 
-There is no browser in this package, and no browser in its artifacts. On first
-use it fetches two things:
+Julia installs the Playwright driver and its Node.js runtime as artifacts through
+`playwright_core_jll` and `NodeJS_24_jll`. No system Node.js installation is needed.
+The driver version is pinned to match this binding's generated protocol.
 
-- the upstream **`playwright-core` npm package**, at a pinned version. This is
-  the same driver the Node, Python and .NET clients use.
-- a pinned **Node.js binary** from nodejs.org to run it.
-
-The package assembles both into a Julia scratch space keyed by the two versions.
 The driver then downloads the browsers themselves into the standard Playwright
 cache, `~/.cache/ms-playwright`, which it shares with any other Playwright
 installation on the machine.
@@ -166,7 +162,7 @@ jobs:
           path: ${{ github.workspace }}/.playwright
           # Key on the Playwright version: that is what decides which browser
           # build is needed.
-          key: playwright-${{ runner.os }}-1.61.1
+          key: playwright-${{ runner.os }}-1.64.1
 
       - name: Install browsers
         if: steps.browsers.outputs.cache-hit != 'true'
@@ -180,8 +176,8 @@ Two things that are easy to get wrong:
 - **Check that the cache hits.** A key that never matches saves you nothing, and
   it fails silently: the job only stays slow. Read the log of a second run and
   check that it skipped the install step.
-- **The driver bundle is separate from the browsers.** It lives in a Julia
-  scratch space, which `julia-actions/cache@v2` already covers. Caching it
+- **The driver artifacts are separate from the browsers.** They live in Julia’s
+  artifact cache, which `julia-actions/cache@v2` already covers. Caching it
   yourself as well puts two actions on one path.
 
 ## Headless, and the display

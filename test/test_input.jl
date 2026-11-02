@@ -126,7 +126,7 @@
         @test sent["method"] == "hover"
         @test sent["params"]["selector"] == "#tip"
         @test sent["params"]["strict"] == false
-        @test sent["params"]["timeout"] == 1_234
+        @test sent["metadata"]["timeout"] == 1_234
         shutdown!(f.fake)
     end
 
@@ -161,7 +161,7 @@
         @test pressed["method"] == "press"
         @test pressed["params"]["key"] == "Control+A"
         @test pressed["params"]["delay"] == 5
-        @test pressed["params"]["timeout"] == 2_000
+        @test pressed["metadata"]["timeout"] == 2_000
 
         typed = waiting_request(f.fake, () -> type!(loc, "julia"; delay = 7))
         @test typed["method"] == "type"
@@ -274,7 +274,7 @@
         @test awaited["guid"] == "frame@1"
         @test awaited["method"] == "waitForSelector"
         @test awaited["params"]["selector"] == "#far"
-        @test awaited["params"]["timeout"] == 5_000
+        @test awaited["metadata"]["timeout"] == 5_000
         reply_ok(
             f.fake,
             awaited["id"],
@@ -284,7 +284,7 @@
         scrolled = next_message(f.fake)
         @test scrolled["guid"] == "handle@1"
         @test scrolled["method"] == "scrollIntoViewIfNeeded"
-        @test scrolled["params"]["timeout"] == 5_000
+        @test scrolled["metadata"]["timeout"] == 5_000
         reply_ok(f.fake, scrolled["id"], Dict{String,Any}())
 
         @test await(task) === nothing

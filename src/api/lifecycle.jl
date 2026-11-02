@@ -56,7 +56,6 @@ function track_driver(proc::Base.Process, keep::Bool)
 end
 
 function start_playwright()
-    driver_installed() || install_driver()
     proc = open(pipeline(driver_cmd("run-driver"); stderr = stderr), "r+")
     track_driver(proc, true)
     transport = Transport(proc.out, proc.in; on_message = _ -> nothing)
